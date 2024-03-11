@@ -1,7 +1,7 @@
 package app
 
 import (
-	user_controller "openidea-shopyfyx/controller/user_controller"
+	"openidea-shopyfyx/controller/user_controller"
 
 	"github.com/gofiber/fiber/v2"
 )
