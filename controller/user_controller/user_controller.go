@@ -1,12 +1,19 @@
 package user_controller
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"openidea-shopyfyx/service/user_service"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 type UserController struct {
+	Service user_service.UserService
 }
 
-func New() UserController {
-	return UserController{}
+func New(service user_service.UserService) UserController {
+	return UserController{
+		Service: service,
+	}
 }
 
 func (controller *UserController) Register(ctx *fiber.Ctx) error {
