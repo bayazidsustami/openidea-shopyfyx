@@ -18,15 +18,12 @@ func InitFiberApp() {
 
 	RegisterRoute(app)
 
-	config := viper.New()
-	config.SetConfigFile(".env")
-	config.AddConfigPath(".")
+	viper.BindEnv("APP_HOST")
+	viper.BindEnv("APP_PORT")
 
-	err := config.ReadInConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
+	applicationHost := viper.GetString("APP_HOST")
+	applicationPort := viper.GetString("APP_PORT")
 
-	err = app.Listen(config.GetString("APP_HOST") + ":" + config.GetString("APP_PORT"))
+	err := app.Listen(applicationHost + ":" + applicationPort)
 	log.Fatal(err)
 }
