@@ -4,10 +4,12 @@ import (
 	"openidea-shopyfyx/controller/user_controller"
 	"openidea-shopyfyx/db"
 	user_repository "openidea-shopyfyx/repository/user"
+	"openidea-shopyfyx/service/auth_service"
 	"openidea-shopyfyx/service/user_service"
 	"openidea-shopyfyx/utils"
 
 	"github.com/go-playground/validator/v10"
+	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -17,11 +19,28 @@ func RegisterRoute(app *fiber.App) {
 	dbPool, err := db.InitDBPool()
 	utils.PanicErr(err)
 
+	authService := auth_service.New()
+
 	userRepository := user_repository.New(dbPool)
-	userService := user_service.New(userRepository, validator)
+	userService := user_service.New(userRepository, validator, authService)
 	userController := user_controller.New(userService)
 
 	userGroup := app.Group("/v1/user")
 	userGroup.Post("/register", userController.Register)
 	userGroup.Post("/login", userController.Login)
+
+	productRoute := app.Group("/v1/product", getJwtTokenHandler())
+	productRoute.Get("/", func(c *fiber.Ctx) error { return err })
+	productRoute.Post("/", func(c *fiber.Ctx) error { return err })
+	productRoute.Patch("/:productId", func(c *fiber.Ctx) error { return err })
+	productRoute.Delete("/:productId", func(c *fiber.Ctx) error { return err })
+
+}
+
+// TODO jangan lupa update secrets key
+func getJwtTokenHandler() fiber.Handler {
+	return jwtware.New(jwtware.Config{
+		SigningKey: jwtware.SigningKey{Key: []byte("ini rahasia")},
+		ContextKey: "userInfo",
+	})
 }
