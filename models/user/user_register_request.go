@@ -1,4 +1,4 @@
-package models
+package user_model
 
 type UserRegisterRequest struct {
 	Username string
