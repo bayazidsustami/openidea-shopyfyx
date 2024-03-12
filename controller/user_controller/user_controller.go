@@ -1,6 +1,7 @@
 package user_controller
 
 import (
+	user_model "openidea-shopyfyx/models/user"
 	"openidea-shopyfyx/service/user_service"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,7 +18,14 @@ func New(service user_service.UserService) UserController {
 }
 
 func (controller *UserController) Register(ctx *fiber.Ctx) error {
-	//TODO : parsing request body and do register
+	userRequest := new(user_model.UserRegisterRequest)
+
+	err := ctx.BodyParser(userRequest)
+	if err != nil {
+		return err
+	}
+
+	controller.Service.Register(ctx.UserContext(), *userRequest)
 
 	return nil
 }
