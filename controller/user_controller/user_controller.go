@@ -25,9 +25,12 @@ func (controller *UserController) Register(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	controller.Service.Register(ctx.UserContext(), *userRequest)
+	result, err := controller.Service.Register(ctx.UserContext(), *userRequest)
+	if err != nil {
+		return err
+	}
 
-	return nil
+	return ctx.JSON(result)
 }
 
 func (controller *UserController) Login(ctx *fiber.Ctx) error {

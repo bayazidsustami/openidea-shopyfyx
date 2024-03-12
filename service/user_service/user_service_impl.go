@@ -19,7 +19,7 @@ func New(repository user_repository.UserRepository) UserService {
 	}
 }
 
-func (service *UserServiceImpl) Register(context context.Context, request user_model.UserRegisterRequest) user_model.UserResponse {
+func (service *UserServiceImpl) Register(context context.Context, request user_model.UserRegisterRequest) (user_model.UserResponse, error) {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), 10)
 	utils.PanicErr(err)
@@ -30,9 +30,16 @@ func (service *UserServiceImpl) Register(context context.Context, request user_m
 		Name:     request.Name,
 	}
 
-	service.Repository.Register(context, user)
+	userResult := service.Repository.Register(context, user)
 
-	return user_model.UserResponse{}
+	return user_model.UserResponse{
+		Message: "success",
+		Data: user_model.UserData{
+			Username:    userResult.Username,
+			Name:        userResult.Name,
+			AccessToken: "",
+		},
+	}, nil
 }
 
 func (service *UserServiceImpl) Login(context context.Context) {

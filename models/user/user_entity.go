@@ -1,7 +1,7 @@
 package user_model
 
 type User struct {
-	UserId   rune
+	UserId   int
 	Username string
 	Password string
 	Name     string
