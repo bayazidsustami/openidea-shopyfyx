@@ -10,13 +10,13 @@ import (
 
 const (
 	DB_NAME     = "openidea_shopifyx"
-	DB_USERNAME = "root"
-	DB_PASSWORD = "admpassword"
+	DB_USERNAME = "bayazidsustamimn"
+	DB_PASSWORD = ""
 	DB_HOST     = "localhost"
 	DB_PORT     = "5432"
 )
 
-func GetDBConnection(context context.Context) *pgxpool.Conn {
+func InitDBPool() (*pgxpool.Pool, error) {
 	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
 	config, err := pgxpool.ParseConfig(dbUrl)
 
@@ -26,23 +26,14 @@ func GetDBConnection(context context.Context) *pgxpool.Conn {
 	config.MinConns = 10
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	dbPool, err := pgxpool.NewWithConfig(context, config)
+	dbPool, err := pgxpool.NewWithConfig(context.Background(), config)
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	defer dbPool.Close()
-
-	conn, err := dbPool.Acquire(context)
-	if err != nil {
-		panic(err)
-	}
-
-	defer conn.Release()
-
-	return conn
+	return dbPool, nil
 }
