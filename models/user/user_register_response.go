@@ -1,13 +1,12 @@
-package models
+package user_model
 
 type UserData struct {
-	UserId   rune
-	Username string
-	Name     string
+	Username    string `json:"username"`
+	Name        string `json:"name"`
+	AccessToken string `json:"accessToken"`
 }
 
 type UserResponse struct {
-	Data    UserData
-	Message string
-	Status  rune
+	Data    UserData `json:"data"`
+	Message string   `json:"message"`
 }

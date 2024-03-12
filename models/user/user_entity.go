@@ -1,4 +1,4 @@
-package models
+package user_model
 
 type User struct {
 	UserId   rune
