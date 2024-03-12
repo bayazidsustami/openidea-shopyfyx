@@ -6,18 +6,17 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-)
-
-const (
-	DB_NAME     = "openidea_shopifyx"
-	DB_USERNAME = "bayazidsustamimn"
-	DB_PASSWORD = ""
-	DB_HOST     = "localhost"
-	DB_PORT     = "5432"
+	"github.com/spf13/viper"
 )
 
 func InitDBPool() (*pgxpool.Pool, error) {
-	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
+	applicationDbName := viper.GetString("DB_NAME")
+	applicationDbUsername := viper.GetString("DB_USERNAME")
+	applicationDbPassword := viper.GetString("DB_PASSWORD")
+	applicationDbHost := viper.GetString("DB_HOST")
+	applicationDbPort := viper.GetString("DB_PORT")
+
+	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", applicationDbUsername, applicationDbPassword, applicationDbHost, applicationDbPort, applicationDbName)
 	config, err := pgxpool.ParseConfig(dbUrl)
 
 	config.MaxConnLifetime = 60 * time.Minute
