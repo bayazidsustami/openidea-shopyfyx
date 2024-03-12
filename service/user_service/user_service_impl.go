@@ -4,6 +4,7 @@ import (
 	"context"
 	user_model "openidea-shopyfyx/models/user"
 	user_repository "openidea-shopyfyx/repository/user"
+	"openidea-shopyfyx/service/auth_service"
 	"openidea-shopyfyx/utils"
 
 	"github.com/go-playground/validator/v10"
@@ -11,14 +12,20 @@ import (
 )
 
 type UserServiceImpl struct {
-	Repository user_repository.UserRepository
-	Validator  *validator.Validate
+	Repository  user_repository.UserRepository
+	Validator   *validator.Validate
+	AuthService auth_service.AuthService
 }
 
-func New(repository user_repository.UserRepository, validator *validator.Validate) UserService {
+func New(
+	repository user_repository.UserRepository,
+	validator *validator.Validate,
+	authService auth_service.AuthService,
+) UserService {
 	return &UserServiceImpl{
-		Repository: repository,
-		Validator:  validator,
+		Repository:  repository,
+		Validator:   validator,
+		AuthService: authService,
 	}
 }
 
@@ -40,12 +47,17 @@ func (service *UserServiceImpl) Register(context context.Context, request user_m
 
 	userResult := service.Repository.Register(context, user)
 
+	validUser, err := service.AuthService.ValidateToken(context, userResult)
+	if err != nil {
+		return nil, err
+	}
+
 	return &user_model.UserResponse{
 		Message: "success",
 		Data: user_model.UserData{
-			Username:    userResult.Username,
-			Name:        userResult.Name,
-			AccessToken: "",
+			Username:    validUser.Username,
+			Name:        validUser.Name,
+			AccessToken: validUser.AccessToken,
 		},
 	}, nil
 }
@@ -67,12 +79,17 @@ func (service *UserServiceImpl) Login(context context.Context, request user_mode
 		return nil, err
 	}
 
+	validUser, err := service.AuthService.ValidateToken(context, userResult)
+	if err != nil {
+		return nil, err
+	}
+
 	return &user_model.UserResponse{
 		Message: "success",
 		Data: user_model.UserData{
-			Username:    userResult.Username,
-			Name:        userResult.Name,
-			AccessToken: "",
+			Username:    validUser.Username,
+			Name:        validUser.Name,
+			AccessToken: validUser.AccessToken,
 		},
 	}, nil
 }

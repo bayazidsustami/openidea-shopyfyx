@@ -4,6 +4,7 @@ import (
 	"openidea-shopyfyx/controller/user_controller"
 	"openidea-shopyfyx/db"
 	user_repository "openidea-shopyfyx/repository/user"
+	"openidea-shopyfyx/service/auth_service"
 	"openidea-shopyfyx/service/user_service"
 	"openidea-shopyfyx/utils"
 
@@ -17,8 +18,10 @@ func RegisterRoute(app *fiber.App) {
 	dbPool, err := db.InitDBPool()
 	utils.PanicErr(err)
 
+	authService := auth_service.New()
+
 	userRepository := user_repository.New(dbPool)
-	userService := user_service.New(userRepository, validator)
+	userService := user_service.New(userRepository, validator, authService)
 	userController := user_controller.New(userService)
 
 	userGroup := app.Group("/v1/user")
