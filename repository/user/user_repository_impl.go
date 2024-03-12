@@ -27,13 +27,9 @@ func (repo *UserRepositoryImpl) Register(ctx context.Context, user user_model.Us
 	utils.PanicErr(err)
 	defer utils.CommitOrRollback(ctx, tx)
 
-	SQL_INSERT := "insert into users(username, password, name) values ($1, $2, $3)"
-	_, err = tx.Exec(ctx, SQL_INSERT, user.Username, user.Password, user.Name)
-	utils.PanicErr(err)
-
 	var userId int
-	SQL_GET := "select user_id from users where username=$1"
-	err = tx.QueryRow(ctx, SQL_GET, user.Username).Scan(&userId)
+	SQL_INSERT := "insert into users(username, password, name) values ($1, $2, $3) returning user_id"
+	err = tx.QueryRow(ctx, SQL_INSERT, user.Username, user.Password, user.Name).Scan(&userId)
 	utils.PanicErr(err)
 
 	user.UserId = userId
