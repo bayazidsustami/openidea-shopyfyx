@@ -6,6 +6,7 @@ import (
 	"openidea-shopyfyx/config"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/spf13/viper"
 )
 
@@ -15,6 +16,8 @@ func InitFiberApp() {
 		WriteTimeout: config.WriteTimeout,
 		ReadTimeout:  config.ReadTimeout,
 	})
+
+	app.Use(logger.New())
 
 	RegisterRoute(app)
 
