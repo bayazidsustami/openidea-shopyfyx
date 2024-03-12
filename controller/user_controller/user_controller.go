@@ -34,7 +34,16 @@ func (controller *UserController) Register(ctx *fiber.Ctx) error {
 }
 
 func (controller *UserController) Login(ctx *fiber.Ctx) error {
-	// TODO : parsing request body and do login
+	userRequest := new(user_model.UserLoginRequest)
+	err := ctx.BodyParser(userRequest)
+	if err != nil {
+		return err
+	}
 
-	return nil
+	result, err := controller.Service.Login(ctx.UserContext(), *userRequest)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(result)
 }

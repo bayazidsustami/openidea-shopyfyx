@@ -41,6 +41,23 @@ func (repo *UserRepositoryImpl) Register(ctx context.Context, user user_model.Us
 }
 
 func (repo *UserRepositoryImpl) Login(ctx context.Context, user user_model.User) user_model.User {
-	//todo
-	return user_model.User{}
+	conn, err := repo.DBPool.Acquire(ctx)
+	utils.PanicErr(err)
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	utils.PanicErr(err)
+	defer utils.CommitOrRollback(ctx, tx)
+
+	var userResult user_model.User
+	SQL_GET_LATEST := "select user_id, username, name, password from users where username=$1"
+	err = tx.QueryRow(ctx, SQL_GET_LATEST, user.Username).Scan(
+		&userResult.UserId,
+		&userResult.Username,
+		&userResult.Name,
+		&userResult.Password,
+	)
+	utils.PanicErr(err)
+
+	return userResult
 }

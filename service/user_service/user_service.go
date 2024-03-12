@@ -7,5 +7,5 @@ import (
 
 type UserService interface {
 	Register(context context.Context, request user_model.UserRegisterRequest) (*user_model.UserResponse, error)
-	Login(context context.Context)
+	Login(context context.Context, request user_model.UserLoginRequest) (*user_model.UserResponse, error)
 }

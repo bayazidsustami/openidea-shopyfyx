@@ -50,6 +50,29 @@ func (service *UserServiceImpl) Register(context context.Context, request user_m
 	}, nil
 }
 
-func (service *UserServiceImpl) Login(context context.Context) {
-	//TODO implement logic
+func (service *UserServiceImpl) Login(context context.Context, request user_model.UserLoginRequest) (*user_model.UserResponse, error) {
+	err := service.Validator.Struct(request)
+	if err != nil {
+		return nil, err
+	}
+
+	user := user_model.User{
+		Username: request.Username,
+	}
+
+	userResult := service.Repository.Login(context, user)
+
+	err = bcrypt.CompareHashAndPassword([]byte(userResult.Password), []byte(request.Password))
+	if err != nil {
+		return nil, err
+	}
+
+	return &user_model.UserResponse{
+		Message: "success",
+		Data: user_model.UserData{
+			Username:    userResult.Username,
+			Name:        userResult.Name,
+			AccessToken: "",
+		},
+	}, nil
 }
