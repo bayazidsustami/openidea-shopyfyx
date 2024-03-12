@@ -9,6 +9,7 @@ import (
 	"openidea-shopyfyx/utils"
 
 	"github.com/go-playground/validator/v10"
+	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -27,4 +28,19 @@ func RegisterRoute(app *fiber.App) {
 	userGroup := app.Group("/v1/user")
 	userGroup.Post("/register", userController.Register)
 	userGroup.Post("/login", userController.Login)
+
+	productRoute := app.Group("/v1/product", getJwtTokenHandler())
+	productRoute.Get("/", func(c *fiber.Ctx) error { return err })
+	productRoute.Post("/", func(c *fiber.Ctx) error { return err })
+	productRoute.Patch("/:productId", func(c *fiber.Ctx) error { return err })
+	productRoute.Delete("/:productId", func(c *fiber.Ctx) error { return err })
+
+}
+
+// TODO jangan lupa update secrets key
+func getJwtTokenHandler() fiber.Handler {
+	return jwtware.New(jwtware.Config{
+		SigningKey: jwtware.SigningKey{Key: []byte("ini rahasia")},
+		ContextKey: "userInfo",
+	})
 }
