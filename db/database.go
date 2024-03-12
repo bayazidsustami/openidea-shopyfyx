@@ -10,12 +10,6 @@ import (
 )
 
 func InitDBPool() (*pgxpool.Pool, error) {
-	viper.BindEnv("DB_NAME")
-	viper.BindEnv("DB_USERNAME")
-	viper.BindEnv("DB_PASSWORD")
-	viper.BindEnv("DB_HOST")
-	viper.BindEnv("DB_PORT")
-
 	applicationDbName := viper.GetString("DB_NAME")
 	applicationDbUsername := viper.GetString("DB_USERNAME")
 	applicationDbPassword := viper.GetString("DB_PASSWORD")
