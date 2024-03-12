@@ -6,6 +6,7 @@ import (
 	"openidea-shopyfyx/config"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/spf13/viper"
 )
 
@@ -16,17 +17,14 @@ func InitFiberApp() {
 		ReadTimeout:  config.ReadTimeout,
 	})
 
+	app.Use(logger.New())
+
+	config.EnvBinder()
 	RegisterRoute(app)
 
-	config := viper.New()
-	config.SetConfigFile(".env")
-	config.AddConfigPath(".")
+	applicationHost := viper.GetString("APP_HOST")
+	applicationPort := viper.GetString("APP_PORT")
 
-	err := config.ReadInConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = app.Listen(config.GetString("APP_HOST") + ":" + config.GetString("APP_PORT"))
+	err := app.Listen(applicationHost + ":" + applicationPort)
 	log.Fatal(err)
 }
