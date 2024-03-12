@@ -32,8 +32,8 @@ func (repo *UserRepositoryImpl) Register(ctx context.Context, user user_model.Us
 	utils.PanicErr(err)
 
 	var userId int
-	SQL_GET_LATEST := "select user_id from users where username=$1"
-	err = tx.QueryRow(ctx, SQL_GET_LATEST, user.Username).Scan(&userId)
+	SQL_GET := "select user_id from users where username=$1"
+	err = tx.QueryRow(ctx, SQL_GET, user.Username).Scan(&userId)
 	utils.PanicErr(err)
 
 	user.UserId = userId
@@ -50,8 +50,8 @@ func (repo *UserRepositoryImpl) Login(ctx context.Context, user user_model.User)
 	defer utils.CommitOrRollback(ctx, tx)
 
 	var userResult user_model.User
-	SQL_GET_LATEST := "select user_id, username, name, password from users where username=$1"
-	err = tx.QueryRow(ctx, SQL_GET_LATEST, user.Username).Scan(
+	SQL_GET := "select user_id, username, name, password from users where username=$1"
+	err = tx.QueryRow(ctx, SQL_GET, user.Username).Scan(
 		&userResult.UserId,
 		&userResult.Username,
 		&userResult.Name,
