@@ -17,10 +17,10 @@ func New() ProductRepository {
 }
 
 func (repository *ProductRepositoryImpl) Create(ctx context.Context, tx pgx.Tx, product product_model.Product) product_model.Product {
-	PROUDCT_INSERT := "insert into proudcts(product_name, condition, tags, is_available, image_url, user_id)" +
-		"values($1, $2, $3, $4, $5, $6, $7) where user_id = $8 returning product_id"
+	PROUDCT_INSERT := "INSERT INTO proudcts(product_name, condition, price, tags, is_available, image_url, user_id)" +
+		"VALUES($1, $2, $3, $4, $5, $6, $7, $8) WHERE user_id = $9 RETURNING product_id"
 
-	PRODUCT_STOCK_INSERT := "insert into prouduct_stocks(product_id, quantity) values($1, $2)"
+	PRODUCT_STOCK_INSERT := "INSERT INTO prouduct_stocks(product_id, quantity) VALUES($1, $2)"
 
 	productTags := strings.Join(product.Tags, ",")
 
@@ -28,6 +28,7 @@ func (repository *ProductRepositoryImpl) Create(ctx context.Context, tx pgx.Tx, 
 	err := tx.QueryRow(ctx, PROUDCT_INSERT,
 		product.ProductName,
 		product.Condition,
+		product.Price,
 		productTags,
 		product.IsAvailable,
 		product.ImageUrl,
