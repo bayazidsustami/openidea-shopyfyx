@@ -13,8 +13,9 @@ type ProductResponse struct {
 }
 
 type PagingProductResponse struct {
-	Message string            `json:"message"`
-	Data    []ProductResponse `json:"data"`
+	Message  string            `json:"message"`
+	Data     []ProductResponse `json:"data"`
+	MetaPage MetaPage          `json:"meta"`
 }
 
 type MetaPage struct {

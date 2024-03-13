@@ -159,6 +159,11 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 		pagingData.Data = append(pagingData.Data, productResponse)
 	}
 	pagingData.Message = "ok"
+	pagingData.MetaPage = product_model.MetaPage{
+		Limit:  pageInfo.Limit,
+		Offset: pageInfo.Offset,
+		Total:  0, // TODO : update later
+	}
 
 	return pagingData, nil
 }
