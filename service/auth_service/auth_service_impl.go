@@ -5,6 +5,7 @@ import (
 	user_model "openidea-shopyfyx/models/user"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -35,4 +36,16 @@ func (service *AuthServiceImpl) ValidateToken(context context.Context, user user
 	user.AccessToken = signedToken
 
 	return user, nil
+}
+
+func (service *AuthServiceImpl) GetValidUser(ctx *fiber.Ctx) (user_model.User, error) {
+	user := ctx.Locals("userInfo").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	username := claims["username"].(string)
+	userId := claims["user_id"].(float64)
+
+	return user_model.User{
+		UserId:   int(userId),
+		Username: username,
+	}, nil
 }
