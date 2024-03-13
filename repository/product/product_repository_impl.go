@@ -2,6 +2,7 @@ package product_repository
 
 import (
 	"context"
+	"log"
 	product_model "openidea-shopyfyx/models/product"
 	"openidea-shopyfyx/utils"
 	"strconv"
@@ -68,7 +69,7 @@ func (repository *ProductRepositoryImpl) Update(ctx context.Context, tx pgx.Tx, 
 	)
 
 	if err != nil {
-		return product_model.Product{}, err
+		return product_model.Product{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	rowsAffected := result.RowsAffected()
@@ -79,11 +80,21 @@ func (repository *ProductRepositoryImpl) Update(ctx context.Context, tx pgx.Tx, 
 	return product, nil
 }
 
-func (repository *ProductRepositoryImpl) Delete(ctx context.Context, tx pgx.Tx, userId int, productId int) {
-	PRODUCT_DELETE := "UPDATE products SET delete_at = CURRENT_TIMESTAMP WHERE product_id=$1"
-	_, err := tx.Exec(ctx, PRODUCT_DELETE, productId)
-	utils.PanicErr(err)
+func (repository *ProductRepositoryImpl) Delete(ctx context.Context, tx pgx.Tx, userId int, productId int) error {
+	PRODUCT_DELETE := "UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE product_id=$1"
+	result, err := tx.Exec(ctx, PRODUCT_DELETE, productId)
+	log.Println(err)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	if result.RowsAffected() == 0 {
+		return fiber.NewError(fiber.StatusNotFound, "not found id : "+strconv.Itoa(productId))
+	}
+
+	return nil
 }
+
 func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx pgx.Tx, userId int) []product_model.Product {
 	GET_PRODUCTS := "SELECT p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, p.user_id, ps.product_stock_id, ps.quantity " +
 		"FROM products p " +

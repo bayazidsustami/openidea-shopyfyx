@@ -103,3 +103,24 @@ func (service *ProductServiceImpl) Update(ctx context.Context, user user_model.U
 	}
 	return nil
 }
+
+func (service *ProductServiceImpl) Delete(ctx context.Context, user user_model.User, productId int) error {
+	conn, err := service.DBPool.Acquire(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	defer utils.CommitOrRollback(ctx, tx)
+
+	err = service.ProductRepository.Delete(ctx, tx, user.UserId, productId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

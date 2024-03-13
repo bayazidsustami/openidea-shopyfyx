@@ -40,7 +40,7 @@ func RegisterRoute(app *fiber.App) {
 	productRoute.Get("/", func(c *fiber.Ctx) error { return err })
 	productRoute.Post("/", productController.Create)
 	productRoute.Patch("/:productId", productController.Update)
-	productRoute.Delete("/:productId", func(c *fiber.Ctx) error { return err })
+	productRoute.Delete("/:productId", productController.Delete)
 
 }
 
