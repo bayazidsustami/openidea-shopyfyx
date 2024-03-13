@@ -68,7 +68,7 @@ func (service *ProductServiceImpl) Create(ctx context.Context, user user_model.U
 	return nil
 }
 
-func (service *ProductServiceImpl) Update(ctx context.Context, user user_model.User, request product_model.CreateProductRequest) error {
+func (service *ProductServiceImpl) Update(ctx context.Context, user user_model.User, request product_model.UpdateProductRequest) error {
 	err := service.Validator.Struct(request)
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())

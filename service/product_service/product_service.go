@@ -8,5 +8,5 @@ import (
 
 type ProductService interface {
 	Create(ctx context.Context, user user_model.User, request product_model.CreateProductRequest) error
-	Update(ctx context.Context, user user_model.User, request product_model.CreateProductRequest) error
+	Update(ctx context.Context, user user_model.User, request product_model.UpdateProductRequest) error
 }

@@ -2,6 +2,7 @@ package product_repository
 
 import (
 	"context"
+	"log"
 	product_model "openidea-shopyfyx/models/product"
 	"openidea-shopyfyx/utils"
 	"strings"
@@ -50,7 +51,7 @@ func (repository *ProductRepositoryImpl) Create(ctx context.Context, tx pgx.Tx, 
 
 func (repository *ProductRepositoryImpl) Update(ctx context.Context, tx pgx.Tx, product product_model.Product) (product_model.Product, error) {
 	PRODUCT_UPDATE := "UPDATE products " +
-		"SET product_name = $1,  price = $2, image_url = $3, tags = $4, is_available=$5, update_at = CURRENT_TIMESTAMP" +
+		"SET product_name = $1,  price = $2, image_url = $3, tags = $4, is_available=$5, updated_at = CURRENT_TIMESTAMP " +
 		"WHERE product_id = $6 AND user_id = $7"
 
 	productTags := strings.Join(product.Tags, ",")
@@ -64,6 +65,7 @@ func (repository *ProductRepositoryImpl) Update(ctx context.Context, tx pgx.Tx, 
 		product.ProductId,
 		product.UserId,
 	)
+	log.Println(err)
 	if err != nil {
 		return product_model.Product{}, err
 	}

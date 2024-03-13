@@ -39,7 +39,7 @@ func RegisterRoute(app *fiber.App) {
 	productRoute := app.Group("/v1/product", getJwtTokenHandler())
 	productRoute.Get("/", func(c *fiber.Ctx) error { return err })
 	productRoute.Post("/", productController.Create)
-	productRoute.Patch("/:productId", func(c *fiber.Ctx) error { return err })
+	productRoute.Patch("/:productId", productController.Update)
 	productRoute.Delete("/:productId", func(c *fiber.Ctx) error { return err })
 
 }

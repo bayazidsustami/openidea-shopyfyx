@@ -4,6 +4,7 @@ import (
 	product_model "openidea-shopyfyx/models/product"
 	"openidea-shopyfyx/service/auth_service"
 	"openidea-shopyfyx/service/product_service"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -37,6 +38,35 @@ func (controller *ProductController) Create(ctx *fiber.Ctx) error {
 	}
 
 	err = controller.ProductService.Create(ctx.UserContext(), user, *productRequest)
+	if err != nil {
+		return err
+	}
+
+	return ctx.SendString("success")
+}
+
+func (controller *ProductController) Update(ctx *fiber.Ctx) error {
+	productRequest := new(product_model.UpdateProductRequest)
+	productIdString := ctx.Params("productId")
+
+	productId, err := strconv.Atoi(productIdString)
+	if err != nil {
+		return err
+	}
+
+	productRequest.ProductId = productId
+
+	err = ctx.BodyParser(productRequest)
+	if err != nil {
+		return err
+	}
+
+	user, err := controller.AuthService.GetValidUser(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = controller.ProductService.Update(ctx.UserContext(), user, *productRequest)
 	if err != nil {
 		return err
 	}
