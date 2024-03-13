@@ -2,11 +2,12 @@ package product_repository
 
 import (
 	"context"
-	"log"
 	product_model "openidea-shopyfyx/models/product"
 	"openidea-shopyfyx/utils"
+	"strconv"
 	"strings"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -56,7 +57,7 @@ func (repository *ProductRepositoryImpl) Update(ctx context.Context, tx pgx.Tx, 
 
 	productTags := strings.Join(product.Tags, ",")
 
-	_, err := tx.Exec(ctx, PRODUCT_UPDATE,
+	result, err := tx.Exec(ctx, PRODUCT_UPDATE,
 		product.ProductName,
 		product.Price,
 		product.ImageUrl,
@@ -65,9 +66,14 @@ func (repository *ProductRepositoryImpl) Update(ctx context.Context, tx pgx.Tx, 
 		product.ProductId,
 		product.UserId,
 	)
-	log.Println(err)
+
 	if err != nil {
 		return product_model.Product{}, err
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return product_model.Product{}, fiber.NewError(fiber.StatusNotFound, "not found id : "+strconv.Itoa(product.ProductId))
 	}
 
 	return product, nil

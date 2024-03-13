@@ -99,7 +99,7 @@ func (service *ProductServiceImpl) Update(ctx context.Context, user user_model.U
 
 	_, err = service.ProductRepository.Update(ctx, tx, product)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return err
 	}
 	return nil
 }
