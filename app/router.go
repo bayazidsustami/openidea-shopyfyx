@@ -50,5 +50,8 @@ func getJwtTokenHandler() fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte("ini rahasia")},
 		ContextKey: "userInfo",
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			return fiber.NewError(fiber.StatusForbidden, err.Error())
+		},
 	})
 }
