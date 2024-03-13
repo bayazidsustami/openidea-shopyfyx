@@ -94,3 +94,11 @@ func (controller *ProductController) Delete(ctx *fiber.Ctx) error {
 
 	return ctx.SendString("success")
 }
+
+func (controller *ProductController) GetAllProducts(ctx *fiber.Ctx) error {
+	return ctx.SendString("success")
+}
+
+func (controller *ProductController) GetProductById(ctx *fiber.Ctx) error {
+	return ctx.SendString("success")
+}

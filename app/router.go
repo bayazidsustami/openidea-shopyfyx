@@ -37,7 +37,8 @@ func RegisterRoute(app *fiber.App) {
 	userGroup.Post("/login", userController.Login)
 
 	productRoute := app.Group("/v1/product", getJwtTokenHandler())
-	productRoute.Get("/", func(c *fiber.Ctx) error { return err })
+	productRoute.Get("/", productController.GetAllProducts)
+	productRoute.Get("/:productId", productController.GetProductById)
 	productRoute.Post("/", productController.Create)
 	productRoute.Patch("/:productId", productController.Update)
 	productRoute.Delete("/:productId", productController.Delete)
