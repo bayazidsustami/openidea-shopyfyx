@@ -7,5 +7,5 @@ type CreateProductRequest struct {
 	Stock          int       `json:"stock" validate:"required,min=0"`
 	Condition      Condition `json:"condition" validate:"required,oneof=new second"`
 	Tags           []string  `json:"tags" validate:"required,min=0"`
-	IsPurchaseable bool      `json:"isPurchaseable" validate:"required"`
+	IsPurchaseable bool      `json:"isPurchaseable" validate:"required,boolean"`
 }
