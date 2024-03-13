@@ -16,7 +16,7 @@ func New() ProductRepository {
 	return &ProductRepositoryImpl{}
 }
 
-func (repository *ProductRepositoryImpl) Create(ctx context.Context, tx pgx.Tx, product product_model.Product) product_model.Product {
+func (repository *ProductRepositoryImpl) Create(ctx context.Context, tx pgx.Tx, product product_model.Product) (product_model.Product, error) {
 	PROUDCT_INSERT := "INSERT INTO proudcts(product_name, condition, price, tags, is_available, image_url, user_id)" +
 		"VALUES($1, $2, $3, $4, $5, $6, $7, $8) WHERE user_id = $9 RETURNING product_id"
 
@@ -34,14 +34,18 @@ func (repository *ProductRepositoryImpl) Create(ctx context.Context, tx pgx.Tx, 
 		product.ImageUrl,
 		product.UserId,
 	).Scan(&productId)
-	utils.PanicErr(err)
+	if err != nil {
+		return product_model.Product{}, err
+	}
 
-	_, err = tx.Exec(ctx, PRODUCT_STOCK_INSERT, product.ProductId, product.ProductStock.Quantity)
-	utils.PanicErr(err)
+	_, err = tx.Exec(ctx, PRODUCT_STOCK_INSERT, productId, product.ProductStock.Quantity)
+	if err != nil {
+		return product_model.Product{}, err
+	}
 
 	product.ProductId = productId
 
-	return product
+	return product, nil
 }
 
 func (repository *ProductRepositoryImpl) Update(ctx context.Context, tx pgx.Tx, product product_model.Product) product_model.Product {

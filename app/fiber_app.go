@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/spf13/viper"
 )
 
@@ -17,6 +18,11 @@ func InitFiberApp() {
 		ReadTimeout:  config.ReadTimeout,
 	})
 
+	app.Use(recover.New(
+		recover.Config{
+			EnableStackTrace: true,
+		},
+	))
 	app.Use(logger.New())
 
 	RegisterRoute(app)

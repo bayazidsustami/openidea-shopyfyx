@@ -8,6 +8,7 @@ import (
 	"openidea-shopyfyx/utils"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -32,15 +33,19 @@ func New(
 func (service *ProductServiceImpl) Create(ctx context.Context, user user_model.User, request product_model.CreateProductRequest) error {
 	err := service.Validator.Struct(request)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	conn, err := service.DBPool.Acquire(ctx)
-	utils.PanicErr(err)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 	defer conn.Release()
 
 	tx, err := conn.Begin(ctx)
-	utils.PanicErr(err)
+	if err != nil {
+		return err
+	}
 	defer utils.CommitOrRollback(ctx, tx)
 
 	product := product_model.Product{
@@ -56,6 +61,9 @@ func (service *ProductServiceImpl) Create(ctx context.Context, user user_model.U
 		IsAvailable: request.IsPurchaseable,
 	}
 
-	_ = service.ProductRepository.Create(ctx, tx, product)
+	_, err = service.ProductRepository.Create(ctx, tx, product)
+	if err != nil {
+		return err
+	}
 	return nil
 }
