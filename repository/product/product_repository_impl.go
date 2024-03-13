@@ -3,6 +3,7 @@ package product_repository
 import (
 	"context"
 	"log"
+	"openidea-shopyfyx/models"
 	product_model "openidea-shopyfyx/models/product"
 	"strconv"
 	"strings"
@@ -94,13 +95,14 @@ func (repository *ProductRepositoryImpl) Delete(ctx context.Context, tx pgx.Tx, 
 	return nil
 }
 
-func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx pgx.Tx, userId int) ([]product_model.Product, error) {
+func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx pgx.Tx, userId int, pageInfo models.MetaPageRequest) ([]product_model.Product, error) {
 	GET_PRODUCTS := "SELECT p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, p.user_id, ps.product_stock_id, ps.quantity " +
 		"FROM products p " +
 		"JOIN product_stocks ps ON p.product_id = ps.product_id " +
 		"WHERE p.deleted_at IS NULL " +
-		"AND p.user_id = $1"
-	rows, err := tx.Query(ctx, GET_PRODUCTS, userId)
+		"AND p.user_id = $1" +
+		"LIMIT $2 OFFSET $3"
+	rows, err := tx.Query(ctx, GET_PRODUCTS, userId, pageInfo.Limit, pageInfo.Offset)
 	if err != nil {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, "something error")
 	}
