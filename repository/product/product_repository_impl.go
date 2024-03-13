@@ -102,5 +102,25 @@ func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx p
 }
 
 func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx pgx.Tx, userId int, productId int) product_model.Product {
-	return product_model.Product{}
+	GET_PRODUCT := "SELECT p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, p.user_id, ps.product_stock_id, ps.quantity " +
+		"FROM products p " +
+		"JOIN product_stocks ps ON p.product_id = ps.product_id " +
+		"WHERE p.deleted_at IS NULL " +
+		"AND p.product_id = $1" +
+		"AND p.user_id = $2"
+	product := product_model.Product{}
+	err := tx.QueryRow(ctx, GET_PRODUCT, productId, userId).Scan(
+		&product.ProductId,
+		&product.ProductName,
+		&product.Price,
+		&product.Condition,
+		&product.Tags,
+		&product.IsAvailable,
+		&product.ImageUrl,
+		&product.UserId,
+		&product.ProductStock.ProductId,
+		&product.ProductStock.Quantity,
+	)
+	utils.PanicErr(err)
+	return product
 }
