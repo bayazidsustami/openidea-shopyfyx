@@ -1,6 +1,7 @@
 package product_controller
 
 import (
+	"openidea-shopyfyx/models"
 	product_model "openidea-shopyfyx/models/product"
 	"openidea-shopyfyx/service/auth_service"
 	"openidea-shopyfyx/service/product_service"
@@ -63,7 +64,7 @@ func (controller *ProductController) Update(ctx *fiber.Ctx) error {
 
 	user, err := controller.AuthService.GetValidUser(ctx)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusForbidden, "something error")
 	}
 
 	err = controller.ProductService.Update(ctx.UserContext(), user, *productRequest)
@@ -84,7 +85,7 @@ func (controller *ProductController) Delete(ctx *fiber.Ctx) error {
 
 	user, err := controller.AuthService.GetValidUser(ctx)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "something error")
+		return fiber.NewError(fiber.StatusForbidden, "something error")
 	}
 
 	err = controller.ProductService.Delete(ctx.UserContext(), user, productId)
@@ -96,7 +97,22 @@ func (controller *ProductController) Delete(ctx *fiber.Ctx) error {
 }
 
 func (controller *ProductController) GetAllProducts(ctx *fiber.Ctx) error {
-	return ctx.SendString("success")
+
+	pageInfo := models.MetaPageRequest{
+		Limit:  10,
+		Offset: 0,
+	}
+
+	user, err := controller.AuthService.GetValidUser(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusForbidden, "something error")
+	}
+	products, err := controller.ProductService.GetAllProducts(ctx.UserContext(), user, pageInfo)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(products)
 }
 
 func (controller *ProductController) GetProductById(ctx *fiber.Ctx) error {

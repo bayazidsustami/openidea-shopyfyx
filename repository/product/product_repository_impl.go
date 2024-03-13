@@ -110,19 +110,21 @@ func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx p
 
 	var products []product_model.Product
 	for rows.Next() {
+		var tags string
 		product := product_model.Product{}
 		err := rows.Scan(
 			&product.ProductId,
 			&product.ProductName,
 			&product.Price,
 			&product.Condition,
-			&product.Tags,
+			&tags,
 			&product.IsAvailable,
 			&product.ImageUrl,
 			&product.UserId,
 			&product.ProductStock.ProductId,
 			&product.ProductStock.Quantity,
 		)
+		product.Tags = strings.Split(tags, ",")
 		if err != nil {
 			return nil, fiber.NewError(fiber.StatusInternalServerError, "something error")
 		}
