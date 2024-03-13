@@ -6,6 +6,7 @@ type Product struct {
 	ProductId    int
 	ProductName  string
 	Condition    Condition
+	Price        float64
 	Tags         []string
 	IsAvailable  bool
 	ImageUrl     string
