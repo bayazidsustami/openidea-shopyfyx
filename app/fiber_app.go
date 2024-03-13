@@ -19,7 +19,6 @@ func InitFiberApp() {
 
 	app.Use(logger.New())
 
-	config.EnvBinder()
 	RegisterRoute(app)
 
 	applicationHost := viper.GetString("APP_HOST")
