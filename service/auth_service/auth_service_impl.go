@@ -39,8 +39,8 @@ func (service *AuthServiceImpl) ValidateToken(context context.Context, user user
 }
 
 func (service *AuthServiceImpl) GetValidUser(ctx *fiber.Ctx) (user_model.User, error) {
-	user := ctx.Locals("userInfo").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
+	userInfo := ctx.Locals("userInfo").(*jwt.Token)
+	claims := userInfo.Claims.(jwt.MapClaims)
 	username := claims["username"].(string)
 	userId := claims["user_id"].(float64)
 
