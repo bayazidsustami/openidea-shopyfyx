@@ -1,10 +1,13 @@
 package app
 
 import (
+	"openidea-shopyfyx/controller/product_controller"
 	"openidea-shopyfyx/controller/user_controller"
 	"openidea-shopyfyx/db"
+	product_repository "openidea-shopyfyx/repository/product"
 	user_repository "openidea-shopyfyx/repository/user"
 	"openidea-shopyfyx/service/auth_service"
+	"openidea-shopyfyx/service/product_service"
 	"openidea-shopyfyx/service/user_service"
 	"openidea-shopyfyx/utils"
 
@@ -25,15 +28,20 @@ func RegisterRoute(app *fiber.App) {
 	userService := user_service.New(userRepository, validator, authService)
 	userController := user_controller.New(userService)
 
+	productRepository := product_repository.New()
+	productService := product_service.New(dbPool, validator, productRepository)
+	productController := product_controller.New(productService, authService)
+
 	userGroup := app.Group("/v1/user")
 	userGroup.Post("/register", userController.Register)
 	userGroup.Post("/login", userController.Login)
 
 	productRoute := app.Group("/v1/product", getJwtTokenHandler())
-	productRoute.Get("/", func(c *fiber.Ctx) error { return err })
-	productRoute.Post("/", func(c *fiber.Ctx) error { return err })
-	productRoute.Patch("/:productId", func(c *fiber.Ctx) error { return err })
-	productRoute.Delete("/:productId", func(c *fiber.Ctx) error { return err })
+	productRoute.Get("/", productController.GetAllProducts)
+	productRoute.Get("/:productId", productController.GetProductById)
+	productRoute.Post("/", productController.Create)
+	productRoute.Patch("/:productId", productController.Update)
+	productRoute.Delete("/:productId", productController.Delete)
 
 }
 
@@ -42,5 +50,8 @@ func getJwtTokenHandler() fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte("ini rahasia")},
 		ContextKey: "userInfo",
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			return fiber.NewError(fiber.StatusForbidden, err.Error())
+		},
 	})
 }
