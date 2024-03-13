@@ -9,7 +9,7 @@ import (
 
 type ProductRepository interface {
 	Create(ctx context.Context, tx pgx.Tx, product product_model.Product) (product_model.Product, error)
-	Update(ctx context.Context, tx pgx.Tx, product product_model.Product) product_model.Product
+	Update(ctx context.Context, tx pgx.Tx, product product_model.Product) (product_model.Product, error)
 	Delete(ctx context.Context, tx pgx.Tx, userId int, productId int)
 	GetAllProduct(ctx context.Context, tx pgx.Tx, userId int) []product_model.Product
 	GetProductById(ctx context.Context, tx pgx.Tx, userId int, productId int) product_model.Product

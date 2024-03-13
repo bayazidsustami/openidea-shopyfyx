@@ -67,3 +67,39 @@ func (service *ProductServiceImpl) Create(ctx context.Context, user user_model.U
 	}
 	return nil
 }
+
+func (service *ProductServiceImpl) Update(ctx context.Context, user user_model.User, request product_model.CreateProductRequest) error {
+	err := service.Validator.Struct(request)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	conn, err := service.DBPool.Acquire(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	defer utils.CommitOrRollback(ctx, tx)
+
+	product := product_model.Product{
+		ProductId:   request.ProductId,
+		ProductName: request.Name,
+		Price:       request.Price,
+		Condition:   request.Condition,
+		ImageUrl:    request.ImageUrl,
+		UserId:      user.UserId,
+		Tags:        request.Tags,
+		IsAvailable: request.IsPurchaseable,
+	}
+
+	_, err = service.ProductRepository.Update(ctx, tx, product)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return nil
+}

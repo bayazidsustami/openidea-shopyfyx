@@ -1,6 +1,7 @@
 package product_model
 
 type CreateProductRequest struct {
+	ProductId      int
 	Name           string    `json:"name" validate:"required,min=5,max=60"`
 	Price          float64   `json:"price" validate:"required,min=0"`
 	ImageUrl       string    `json:"imageUrl" validate:"required,url"`

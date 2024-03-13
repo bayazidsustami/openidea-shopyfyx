@@ -48,7 +48,7 @@ func (repository *ProductRepositoryImpl) Create(ctx context.Context, tx pgx.Tx, 
 	return product, nil
 }
 
-func (repository *ProductRepositoryImpl) Update(ctx context.Context, tx pgx.Tx, product product_model.Product) product_model.Product {
+func (repository *ProductRepositoryImpl) Update(ctx context.Context, tx pgx.Tx, product product_model.Product) (product_model.Product, error) {
 	PRODUCT_UPDATE := "UPDATE products " +
 		"SET product_name = $1,  price = $2, image_url = $3, tags = $4, is_available=$5, update_at = CURRENT_TIMESTAMP" +
 		"WHERE product_id = $6 AND user_id = $7"
@@ -64,9 +64,11 @@ func (repository *ProductRepositoryImpl) Update(ctx context.Context, tx pgx.Tx, 
 		product.ProductId,
 		product.UserId,
 	)
-	utils.PanicErr(err)
+	if err != nil {
+		return product_model.Product{}, err
+	}
 
-	return product
+	return product, nil
 }
 
 func (repository *ProductRepositoryImpl) Delete(ctx context.Context, tx pgx.Tx, userId int, productId int) {
