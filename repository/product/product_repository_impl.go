@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	product_model "openidea-shopyfyx/models/product"
-	"openidea-shopyfyx/utils"
 	"strconv"
 	"strings"
 
@@ -95,14 +94,16 @@ func (repository *ProductRepositoryImpl) Delete(ctx context.Context, tx pgx.Tx, 
 	return nil
 }
 
-func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx pgx.Tx, userId int) []product_model.Product {
+func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx pgx.Tx, userId int) ([]product_model.Product, error) {
 	GET_PRODUCTS := "SELECT p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, p.user_id, ps.product_stock_id, ps.quantity " +
 		"FROM products p " +
 		"JOIN product_stocks ps ON p.product_id = ps.product_id " +
 		"WHERE p.deleted_at IS NULL " +
 		"AND p.user_id = $1"
 	rows, err := tx.Query(ctx, GET_PRODUCTS, userId)
-	utils.PanicErr(err)
+	if err != nil {
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "something error")
+	}
 	defer rows.Close()
 
 	var products []product_model.Product
@@ -120,13 +121,15 @@ func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx p
 			&product.ProductStock.ProductId,
 			&product.ProductStock.Quantity,
 		)
-		utils.PanicErr(err)
+		if err != nil {
+			return nil, fiber.NewError(fiber.StatusInternalServerError, "something error")
+		}
 		products = append(products, product)
 	}
-	return products
+	return products, nil
 }
 
-func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx pgx.Tx, userId int, productId int) product_model.Product {
+func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx pgx.Tx, userId int, productId int) (product_model.Product, error) {
 	GET_PRODUCT := "SELECT p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, p.user_id, ps.product_stock_id, ps.quantity " +
 		"FROM products p " +
 		"JOIN product_stocks ps ON p.product_id = ps.product_id " +
@@ -146,6 +149,8 @@ func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx 
 		&product.ProductStock.ProductId,
 		&product.ProductStock.Quantity,
 	)
-	utils.PanicErr(err)
-	return product
+	if err != nil {
+		return product_model.Product{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
+	}
+	return product, nil
 }
