@@ -36,7 +36,10 @@ func RegisterRoute(app *fiber.App) {
 	userGroup.Post("/register", userController.Register)
 	userGroup.Post("/login", userController.Login)
 
-	productRoute := app.Group("/v1/product", getJwtTokenHandler())
+	app.Use(checkTokenHeaderExist)
+	app.Use(getJwtTokenHandler())
+
+	productRoute := app.Group("/v1/product")
 	productRoute.Get("/", productController.GetAllProducts)
 	productRoute.Get("/:productId", productController.GetProductById)
 	productRoute.Post("/", productController.Create)
@@ -54,4 +57,13 @@ func getJwtTokenHandler() fiber.Handler {
 			return fiber.NewError(fiber.StatusForbidden, err.Error())
 		},
 	})
+}
+
+func checkTokenHeaderExist(ctx *fiber.Ctx) error {
+	authHeader := ctx.Get("Authorization")
+	if authHeader == "" {
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
+	} else {
+		return ctx.Next()
+	}
 }
