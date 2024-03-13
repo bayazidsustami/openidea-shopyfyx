@@ -98,6 +98,13 @@ func (controller *ProductController) Delete(ctx *fiber.Ctx) error {
 
 func (controller *ProductController) GetAllProducts(ctx *fiber.Ctx) error {
 
+	filterProduct := new(product_model.FilterProducts)
+
+	err := ctx.QueryParser(filterProduct)
+	if err != nil {
+		return fiber.NewError(fiber.StatusForbidden, "something error")
+	}
+
 	pageInfo := models.MetaPageRequest{
 		Limit:  10,
 		Offset: 0,
