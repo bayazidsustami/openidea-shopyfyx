@@ -3,43 +3,71 @@ package bank_account_service
 import (
 	"context"
 	bank_account_model "openidea-shopyfyx/models/bank_account"
+	user_model "openidea-shopyfyx/models/user"
 	bank_account_repository "openidea-shopyfyx/repository/bank_account"
-	"openidea-shopyfyx/service/auth_service"
 
 	"github.com/go-playground/validator/v10"
 )
 
 type BankAccountServiceImpl struct {
-	Repository  bank_account_repository.BankAccountRepository
-	Validator   *validator.Validate
-	AuthService *auth_service.AuthService
+	BankAccountRepository bank_account_repository.BankAccountRepository
+	Validator             *validator.Validate
 }
 
 func New(
-	repository bank_account_repository.BankAccountRepository,
+	bankAccountRepository bank_account_repository.BankAccountRepository,
 	validator *validator.Validate,
-	authService auth_service.AuthService,
 ) BankAccountService {
 	return &BankAccountServiceImpl{
-		Repository:  repository,
-		Validator:   validator,
-		AuthService: authService,
+		BankAccountRepository: bankAccountRepository,
+		Validator:             validator,
 	}
 }
 
-func (service *BankAccountServiceImpl) Create(context context.Context, request bank_account_model.BankAccountRequest) (*bank_account_model.BankAccountResponse, error) {
+func (service *BankAccountServiceImpl) Create(ctx context.Context, user user_model.User, request bank_account_model.BankAccountRequest) error {
 	err := service.Validator.Struct(request)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	bankAccount := bank_account_model.BankAccount{
 		BankName:          request.BankName,
 		BankAccountName:   request.BankAccountName,
 		BankAccountNumber: request.BankAccountNumber,
+		UserId:            user.UserId,
 	}
+
+	service.BankAccountRepository.Create(ctx, bankAccount)
+
+	return nil
 }
 
-func (service *BankAccountServiceImpl) Get(context context.Context, request int) (*bank_account_model.BankAccountResponse, error) {
+func (service *BankAccountServiceImpl) GetAllByUserId(ctx context.Context, user user_model.User) (bank_account_model.BankAccountsByUserIdResponse, error) {
+	bankAccounts, err := service.BankAccountRepository.GetAllByUserId(ctx, user.UserId)
+	if err != nil {
+		return bank_account_model.BankAccountsByUserIdResponse{}, err
+	}
+
+	var bankAccountsByUserIdResponse bank_account_model.BankAccountsByUserIdResponse
+	for _, bankAccount := range bankAccounts {
+		bankAccountData := bank_account_model.BankAccountData{
+			BankAccountId:     bankAccount.BankAccountId,
+			BankName:          bankAccount.BankName,
+			BankAccountName:   bankAccount.BankAccountName,
+			BankAccountNumber: bankAccount.BankAccountNumber,
+		}
+
+		bankAccountsByUserIdResponse.Data = append(bankAccountsByUserIdResponse.Data, bankAccountData)
+	}
+	bankAccountsByUserIdResponse.Message = "success"
+
+	return bankAccountsByUserIdResponse, nil
+}
+
+func (service *BankAccountServiceImpl) Update(ctx context.Context, user user_model.User, request bank_account_model.BankAccountRequest) error {
+	return nil
+}
+
+func (service *BankAccountServiceImpl) Delete(ctx context.Context, user user_model.User, request int) {
 
 }

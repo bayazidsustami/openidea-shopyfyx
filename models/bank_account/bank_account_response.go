@@ -7,7 +7,7 @@ type BankAccountData struct {
 	BankAccountNumber string `json:"bank_account_number"`
 }
 
-type BankAccountResponse struct {
-	Data    BankAccountData `json:"data"`
-	Message string          `json:"string"`
+type BankAccountsByUserIdResponse struct {
+	Data    []BankAccountData `json:"data"`
+	Message string            `json:"string"`
 }
