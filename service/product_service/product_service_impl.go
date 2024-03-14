@@ -183,3 +183,28 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 func (service *ProductServiceImpl) GetProductById(ctx context.Context, user user_model.User, productId int) error {
 	return nil
 }
+
+func (service *ProductServiceImpl) UpdateProductStock(ctx context.Context, user user_model.User, productId int, request product_model.UpdateProductStockRequest) error {
+	if err := service.Validator.Struct(request); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	conn, err := service.DBPool.Acquire(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	defer utils.CommitOrRollback(ctx, tx)
+
+	err = service.ProductRepository.UpdateProductStock(ctx, tx, user.UserId, productId, request.Stock)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

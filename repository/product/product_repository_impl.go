@@ -82,7 +82,7 @@ func (repository *ProductRepositoryImpl) Update(ctx context.Context, tx pgx.Tx, 
 func (repository *ProductRepositoryImpl) Delete(ctx context.Context, tx pgx.Tx, userId int, productId int) error {
 	PRODUCT_DELETE := "UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE product_id=$1"
 	result, err := tx.Exec(ctx, PRODUCT_DELETE, productId)
-	log.Println(err)
+
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -96,7 +96,7 @@ func (repository *ProductRepositoryImpl) Delete(ctx context.Context, tx pgx.Tx, 
 
 func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx pgx.Tx, userId int, filterProduct product_model.FilterProducts) ([]product_model.Product, product_model.MetaPage, error) {
 	query := filterProduct.BuildQuery(userId)
-	log.Println(query)
+
 	rows, err := tx.Query(ctx, query, userId)
 	if err != nil {
 		return nil, product_model.MetaPage{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
@@ -156,4 +156,24 @@ func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx 
 		return product_model.Product{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
 	}
 	return product, nil
+}
+
+func (repository *ProductRepositoryImpl) UpdateProductStock(ctx context.Context, tx pgx.Tx, userId int, productId int, stockAmount int) error {
+	UPDATE_PRODUCT_STOCK := "UPDATE product_stocks AS ps " +
+		"SET updated_at = CURRENT_TIMESTAMP, quantity = $1 " +
+		"FROM products AS p " +
+		"WHERE ps.product_id = $2 " +
+		"AND p.user_id = $3"
+
+	result, err := tx.Exec(ctx, UPDATE_PRODUCT_STOCK, stockAmount, productId, userId)
+	log.Println(err)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	if result.RowsAffected() == 0 {
+		return fiber.NewError(fiber.StatusNotFound, "not found id : "+strconv.Itoa(productId))
+	}
+
+	return nil
 }
