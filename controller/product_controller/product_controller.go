@@ -79,7 +79,7 @@ func (controller *ProductController) Delete(ctx *fiber.Ctx) error {
 
 	productId, err := strconv.Atoi(productIdString)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "something error")
+		return fiber.NewError(fiber.StatusBadRequest, "something error")
 	}
 
 	user, err := controller.AuthService.GetValidUser(ctx)
@@ -121,5 +121,28 @@ func (controller *ProductController) GetProductById(ctx *fiber.Ctx) error {
 }
 
 func (controller *ProductController) UpdateProductStock(ctx *fiber.Ctx) error {
+	updateProductStock := new(product_model.UpdateProductStockRequest)
+
+	err := ctx.BodyParser(updateProductStock)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	productIdString := ctx.Params("productId")
+	productId, err := strconv.Atoi(productIdString)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "something error")
+	}
+
+	user, err := controller.AuthService.GetValidUser(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusForbidden, "something error")
+	}
+
+	err = controller.ProductService.UpdateProductStock(ctx.UserContext(), user, productId, *updateProductStock)
+	if err != nil {
+		return err
+	}
+
 	return ctx.SendString("success")
 }

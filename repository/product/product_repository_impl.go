@@ -2,6 +2,7 @@ package product_repository
 
 import (
 	"context"
+	"log"
 	product_model "openidea-shopyfyx/models/product"
 	"strconv"
 	"strings"
@@ -160,11 +161,12 @@ func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx 
 func (repository *ProductRepositoryImpl) UpdateProductStock(ctx context.Context, tx pgx.Tx, userId int, productId int, stockAmount int) error {
 	UPDATE_PRODUCT_STOCK := "UPDATE product_stocks AS ps " +
 		"SET updated_at = CURRENT_TIMESTAMP, quantity = $1 " +
-		"FROM products AS p" +
-		"WHERE ps.product_id = $2" +
+		"FROM products AS p " +
+		"WHERE ps.product_id = $2 " +
 		"AND p.user_id = $3"
 
 	result, err := tx.Exec(ctx, UPDATE_PRODUCT_STOCK, stockAmount, productId, userId)
+	log.Println(err)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}

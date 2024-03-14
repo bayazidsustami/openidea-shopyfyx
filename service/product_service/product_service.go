@@ -12,4 +12,5 @@ type ProductService interface {
 	Delete(ctx context.Context, user user_model.User, productId int) error
 	GetAllProducts(ctx context.Context, user user_model.User, filterProduct product_model.FilterProducts) (product_model.PagingProductResponse, error)
 	GetProductById(ctx context.Context, user user_model.User, productId int) error
+	UpdateProductStock(ctx context.Context, user user_model.User, productId int, request product_model.UpdateProductStockRequest) error
 }
