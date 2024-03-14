@@ -27,5 +27,5 @@ func envBinder() {
 	 */
 	viper.BindEnv("S3_ID")
 	viper.BindEnv("S3_SECRET_KEY")
-	viper.BindEnv("S3_BASE_URL")
+	viper.BindEnv("S3_BUCKET_NAME")
 }
