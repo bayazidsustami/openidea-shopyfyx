@@ -141,7 +141,7 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 		return product_model.PagingProductResponse{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	defer utils.CommitOrRollback(ctx, tx)
-	products, err := service.ProductRepository.GetAllProduct(ctx, tx, user.UserId, filterProduct)
+	products, meta, err := service.ProductRepository.GetAllProduct(ctx, tx, user.UserId, filterProduct)
 	if err != nil {
 		return product_model.PagingProductResponse{}, err
 	}
@@ -163,9 +163,9 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 	}
 	pagingData.Message = "ok"
 	pagingData.MetaPage = product_model.MetaPage{
-		Limit:  filterProduct.Limit,
-		Offset: filterProduct.Offset,
-		Total:  0, // TODO : update later
+		Limit:  meta.Limit,
+		Offset: meta.Offset,
+		Total:  meta.Total,
 	}
 
 	return pagingData, nil
