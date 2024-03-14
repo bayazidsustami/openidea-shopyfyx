@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/spf13/viper"
 )
 
 type AuthServiceImpl struct {
@@ -28,7 +29,7 @@ func (service *AuthServiceImpl) ValidateToken(context context.Context, user user
 
 	// Generate encoded token and send it as response.
 	// TODO : jangan lupa ganti JWTsecret key
-	signedToken, err := token.SignedString([]byte("ini rahasia"))
+	signedToken, err := token.SignedString([]byte(viper.GetString("JWT_SECRET")))
 	if err != nil {
 		return user_model.User{}, err
 	}

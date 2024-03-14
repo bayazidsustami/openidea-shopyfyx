@@ -10,6 +10,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -53,7 +54,7 @@ func (service *UserServiceImpl) Register(context context.Context, request user_m
 	}
 	defer utils.CommitOrRollback(context, tx)
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), viper.GetInt("BCRYPT_SALT"))
 	if err != nil {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, "something error")
 	}
