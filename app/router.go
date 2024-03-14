@@ -55,6 +55,7 @@ func RegisterRoute(app *fiber.App) {
 	productRoute.Post("/", productController.Create)
 	productRoute.Patch("/:productId", productController.Update)
 	productRoute.Delete("/:productId", productController.Delete)
+	productRoute.Delete("/:productId/stock", productController.UpdateProductStock)
 
 	imageRoute := app.Group("/v1/image")
 	imageRoute.Post("/", imageUploadController.UploadImage)

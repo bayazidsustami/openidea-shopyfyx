@@ -119,3 +119,7 @@ func (controller *ProductController) GetAllProducts(ctx *fiber.Ctx) error {
 func (controller *ProductController) GetProductById(ctx *fiber.Ctx) error {
 	return ctx.SendString("success")
 }
+
+func (controller *ProductController) UpdateProductStock(ctx *fiber.Ctx) error {
+	return ctx.SendString("success")
+}
