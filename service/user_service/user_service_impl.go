@@ -8,6 +8,8 @@ import (
 	"openidea-shopyfyx/utils"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,17 +17,20 @@ type UserServiceImpl struct {
 	Repository  user_repository.UserRepository
 	Validator   *validator.Validate
 	AuthService auth_service.AuthService
+	DBPool      *pgxpool.Pool
 }
 
 func New(
 	repository user_repository.UserRepository,
 	validator *validator.Validate,
 	authService auth_service.AuthService,
+	dbPool *pgxpool.Pool,
 ) UserService {
 	return &UserServiceImpl{
 		Repository:  repository,
 		Validator:   validator,
 		AuthService: authService,
+		DBPool:      dbPool,
 	}
 }
 
@@ -33,11 +38,25 @@ func (service *UserServiceImpl) Register(context context.Context, request user_m
 
 	err := service.Validator.Struct(request)
 	if err != nil {
-		return nil, err
+		return nil, fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
+	conn, err := service.DBPool.Acquire(context)
+	if err != nil {
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "something error")
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(context)
+	if err != nil {
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "something error")
+	}
+	defer utils.CommitOrRollback(context, tx)
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), 10)
-	utils.PanicErr(err)
+	if err != nil {
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "something error")
+	}
 
 	user := user_model.User{
 		Username: request.Username,
@@ -45,11 +64,15 @@ func (service *UserServiceImpl) Register(context context.Context, request user_m
 		Name:     request.Name,
 	}
 
-	userResult := service.Repository.Register(context, user)
+	userResult, err := service.Repository.Register(context, tx, user)
+	if err != nil {
+		return nil, fiber.NewError(fiber.StatusConflict, "user already registered")
+	}
 
 	validUser, err := service.AuthService.ValidateToken(context, userResult)
 	if err != nil {
-		return nil, err
+		tx.Rollback(context)
+		return nil, fiber.NewError(fiber.StatusForbidden, err.Error())
 	}
 
 	return &user_model.UserResponse{
@@ -65,23 +88,38 @@ func (service *UserServiceImpl) Register(context context.Context, request user_m
 func (service *UserServiceImpl) Login(context context.Context, request user_model.UserLoginRequest) (*user_model.UserResponse, error) {
 	err := service.Validator.Struct(request)
 	if err != nil {
-		return nil, err
+		return nil, fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+
+	conn, err := service.DBPool.Acquire(context)
+	if err != nil {
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "something error")
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(context)
+	if err != nil {
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "something error")
+	}
+	defer utils.CommitOrRollback(context, tx)
 
 	user := user_model.User{
 		Username: request.Username,
 	}
 
-	userResult := service.Repository.Login(context, user)
-
-	err = bcrypt.CompareHashAndPassword([]byte(userResult.Password), []byte(request.Password))
+	userResult, err := service.Repository.Login(context, tx, user)
 	if err != nil {
 		return nil, err
 	}
 
+	err = bcrypt.CompareHashAndPassword([]byte(userResult.Password), []byte(request.Password))
+	if err != nil {
+		return nil, fiber.NewError(fiber.StatusUnauthorized, err.Error())
+	}
+
 	validUser, err := service.AuthService.ValidateToken(context, userResult)
 	if err != nil {
-		return nil, err
+		return nil, fiber.NewError(fiber.StatusForbidden, err.Error())
 	}
 
 	return &user_model.UserResponse{
