@@ -65,7 +65,7 @@ func RegisterRoute(app *fiber.App) {
 // TODO jangan lupa update secrets key
 func getJwtTokenHandler() fiber.Handler {
 	return jwtware.New(jwtware.Config{
-		SigningKey: jwtware.SigningKey{Key: []byte("ini rahasia")},
+		SigningKey: jwtware.SigningKey{Key: []byte(viper.GetString("JWT_SECRET"))},
 		ContextKey: "userInfo",
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			return fiber.NewError(fiber.StatusForbidden, err.Error())
