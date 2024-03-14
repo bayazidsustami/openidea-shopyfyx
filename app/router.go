@@ -24,8 +24,8 @@ func RegisterRoute(app *fiber.App) {
 
 	authService := auth_service.New()
 
-	userRepository := user_repository.New(dbPool)
-	userService := user_service.New(userRepository, validator, authService)
+	userRepository := user_repository.New()
+	userService := user_service.New(userRepository, validator, authService, dbPool)
 	userController := user_controller.New(userService)
 
 	productRepository := product_repository.New()
