@@ -110,7 +110,6 @@ func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx p
 	defer rows.Close()
 
 	var products []product_model.Product
-	var totalProducts int
 	for rows.Next() {
 		var tags string
 		product := product_model.Product{}
@@ -125,7 +124,6 @@ func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx p
 			&product.UserId,
 			&product.ProductStock.ProductId,
 			&product.ProductStock.Quantity,
-			&totalProducts,
 		)
 		product.Tags = strings.Split(tags, ",")
 		if err != nil {
@@ -136,7 +134,7 @@ func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx p
 	return products, product_model.MetaPage{
 		Limit:  filterProduct.Limit,
 		Offset: filterProduct.Offset,
-		Total:  totalProducts,
+		Total:  len(products),
 	}, nil
 }
 
