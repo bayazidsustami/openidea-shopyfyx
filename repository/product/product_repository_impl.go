@@ -95,12 +95,6 @@ func (repository *ProductRepositoryImpl) Delete(ctx context.Context, tx pgx.Tx, 
 }
 
 func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx pgx.Tx, userId int, filterProduct product_model.FilterProducts) ([]product_model.Product, product_model.MetaPage, error) {
-	// GET_PRODUCTS := "SELECT p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, p.user_id, ps.product_stock_id, ps.quantity " +
-	// 	"FROM products p " +
-	// 	"JOIN product_stocks ps ON p.product_id = ps.product_id " +
-	// 	"WHERE p.deleted_at IS NULL " +
-	// 	"AND p.user_id = $1" +
-	// 	"LIMIT $2 OFFSET $3"
 	query := filterProduct.BuildQuery(userId)
 	log.Println(query)
 	rows, err := tx.Query(ctx, query, userId)
