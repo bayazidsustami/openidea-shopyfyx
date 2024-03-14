@@ -1,19 +1,26 @@
 package app
 
 import (
+	"openidea-shopyfyx/controller/image_upload_controller"
 	"openidea-shopyfyx/controller/product_controller"
 	"openidea-shopyfyx/controller/user_controller"
 	"openidea-shopyfyx/db"
 	product_repository "openidea-shopyfyx/repository/product"
 	user_repository "openidea-shopyfyx/repository/user"
 	"openidea-shopyfyx/service/auth_service"
+	"openidea-shopyfyx/service/image_service"
 	"openidea-shopyfyx/service/product_service"
 	"openidea-shopyfyx/service/user_service"
 	"openidea-shopyfyx/utils"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-playground/validator/v10"
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/spf13/viper"
 )
 
 func RegisterRoute(app *fiber.App) {
@@ -32,6 +39,9 @@ func RegisterRoute(app *fiber.App) {
 	productService := product_service.New(dbPool, validator, productRepository)
 	productController := product_controller.New(productService, authService)
 
+	imageService := image_service.New(getAwsSession())
+	imageUploadController := image_upload_controller.New(authService, imageService)
+
 	userGroup := app.Group("/v1/user")
 	userGroup.Post("/register", userController.Register)
 	userGroup.Post("/login", userController.Login)
@@ -45,6 +55,9 @@ func RegisterRoute(app *fiber.App) {
 	productRoute.Post("/", productController.Create)
 	productRoute.Patch("/:productId", productController.Update)
 	productRoute.Delete("/:productId", productController.Delete)
+
+	imageRoute := app.Group("/v1/image")
+	imageRoute.Post("/", imageUploadController.UploadImage)
 
 }
 
@@ -66,4 +79,18 @@ func checkTokenHeaderExist(ctx *fiber.Ctx) error {
 	} else {
 		return ctx.Next()
 	}
+}
+
+func getAwsSession() *s3.S3 {
+	sess := session.Must(session.NewSession(&aws.Config{
+		Region: aws.String("ap-southeast-1"),
+		Credentials: credentials.NewStaticCredentials(
+			viper.GetString("S3_ID"),
+			viper.GetString("S3_SECRET_KEY"),
+			"",
+		),
+	}))
+	svc := s3.New(sess)
+
+	return svc
 }
