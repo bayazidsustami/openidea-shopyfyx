@@ -1,6 +1,7 @@
 package app
 
 import (
+	"openidea-shopyfyx/controller/image_upload_controller"
 	"openidea-shopyfyx/controller/product_controller"
 	"openidea-shopyfyx/controller/user_controller"
 	"openidea-shopyfyx/db"
@@ -32,6 +33,8 @@ func RegisterRoute(app *fiber.App) {
 	productService := product_service.New(dbPool, validator, productRepository)
 	productController := product_controller.New(productService, authService)
 
+	imageUploadController := image_upload_controller.New(authService)
+
 	userGroup := app.Group("/v1/user")
 	userGroup.Post("/register", userController.Register)
 	userGroup.Post("/login", userController.Login)
@@ -45,6 +48,9 @@ func RegisterRoute(app *fiber.App) {
 	productRoute.Post("/", productController.Create)
 	productRoute.Patch("/:productId", productController.Update)
 	productRoute.Delete("/:productId", productController.Delete)
+
+	imageRoute := app.Group("/v1/image")
+	imageRoute.Post("/", imageUploadController.UploadImage)
 
 }
 
