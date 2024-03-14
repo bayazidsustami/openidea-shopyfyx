@@ -1,13 +1,16 @@
 package app
 
 import (
+	"openidea-shopyfyx/controller/bank_account_controller"
 	"openidea-shopyfyx/controller/image_upload_controller"
 	"openidea-shopyfyx/controller/product_controller"
 	"openidea-shopyfyx/controller/user_controller"
 	"openidea-shopyfyx/db"
+	bank_account_repository "openidea-shopyfyx/repository/bank_account"
 	product_repository "openidea-shopyfyx/repository/product"
 	user_repository "openidea-shopyfyx/repository/user"
 	"openidea-shopyfyx/service/auth_service"
+	"openidea-shopyfyx/service/bank_account_service"
 	"openidea-shopyfyx/service/image_service"
 	"openidea-shopyfyx/service/product_service"
 	"openidea-shopyfyx/service/user_service"
@@ -42,6 +45,10 @@ func RegisterRoute(app *fiber.App) {
 	imageService := image_service.New(getAwsSession())
 	imageUploadController := image_upload_controller.New(authService, imageService)
 
+	bankAccountRepository := bank_account_repository.New(dbPool)
+	bankAccountService := bank_account_service.New(bankAccountRepository, validator)
+	bankAccountController := bank_account_controller.New(bankAccountService, authService)
+
 	userGroup := app.Group("/v1/user")
 	userGroup.Post("/register", userController.Register)
 	userGroup.Post("/login", userController.Login)
@@ -60,6 +67,9 @@ func RegisterRoute(app *fiber.App) {
 	imageRoute := app.Group("/v1/image")
 	imageRoute.Post("/", imageUploadController.UploadImage)
 
+	bankAccountRoute := app.Group("/v1/bank/account")
+	bankAccountRoute.Get("/", bankAccountController.GetAllByUserId)
+	bankAccountRoute.Post("/", bankAccountController.Create)
 }
 
 // TODO jangan lupa update secrets key
