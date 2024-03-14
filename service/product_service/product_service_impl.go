@@ -2,7 +2,6 @@ package product_service
 
 import (
 	"context"
-	"openidea-shopyfyx/models"
 	product_model "openidea-shopyfyx/models/product"
 	user_model "openidea-shopyfyx/models/user"
 	product_repository "openidea-shopyfyx/repository/product"
@@ -126,7 +125,11 @@ func (service *ProductServiceImpl) Delete(ctx context.Context, user user_model.U
 	return nil
 }
 
-func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user_model.User, pageInfo models.MetaPageRequest) (product_model.PagingProductResponse, error) {
+func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user_model.User, filterProduct product_model.FilterProducts) (product_model.PagingProductResponse, error) {
+	if err := service.Validator.Struct(filterProduct); err != nil {
+		return product_model.PagingProductResponse{}, fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
 	conn, err := service.DBPool.Acquire(ctx)
 	if err != nil {
 		return product_model.PagingProductResponse{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
@@ -138,7 +141,7 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 		return product_model.PagingProductResponse{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	defer utils.CommitOrRollback(ctx, tx)
-	products, err := service.ProductRepository.GetAllProduct(ctx, tx, user.UserId, pageInfo)
+	products, err := service.ProductRepository.GetAllProduct(ctx, tx, user.UserId, filterProduct)
 	if err != nil {
 		return product_model.PagingProductResponse{}, err
 	}
@@ -160,8 +163,8 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 	}
 	pagingData.Message = "ok"
 	pagingData.MetaPage = product_model.MetaPage{
-		Limit:  pageInfo.Limit,
-		Offset: pageInfo.Offset,
+		Limit:  filterProduct.Limit,
+		Offset: filterProduct.Offset,
 		Total:  0, // TODO : update later
 	}
 

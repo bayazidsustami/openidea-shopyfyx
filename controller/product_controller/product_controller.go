@@ -1,7 +1,6 @@
 package product_controller
 
 import (
-	"openidea-shopyfyx/models"
 	product_model "openidea-shopyfyx/models/product"
 	"openidea-shopyfyx/service/auth_service"
 	"openidea-shopyfyx/service/product_service"
@@ -102,19 +101,14 @@ func (controller *ProductController) GetAllProducts(ctx *fiber.Ctx) error {
 
 	err := ctx.QueryParser(filterProduct)
 	if err != nil {
-		return fiber.NewError(fiber.StatusForbidden, "something error")
-	}
-
-	pageInfo := models.MetaPageRequest{
-		Limit:  10,
-		Offset: 0,
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	user, err := controller.AuthService.GetValidUser(ctx)
 	if err != nil {
 		return fiber.NewError(fiber.StatusForbidden, "something error")
 	}
-	products, err := controller.ProductService.GetAllProducts(ctx.UserContext(), user, pageInfo)
+	products, err := controller.ProductService.GetAllProducts(ctx.UserContext(), user, *filterProduct)
 	if err != nil {
 		return err
 	}
