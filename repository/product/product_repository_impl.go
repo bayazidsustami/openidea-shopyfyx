@@ -149,6 +149,10 @@ func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx 
 	}
 	defer rows.Close()
 
+	if !rows.Next() {
+		return product_model.ProductUsers{}, fiber.NewError(fiber.StatusNotFound, "not found ")
+	}
+
 	var productUser product_model.ProductUsers
 	for rows.Next() {
 		var tags string
