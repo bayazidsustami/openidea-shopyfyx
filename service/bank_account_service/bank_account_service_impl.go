@@ -64,10 +64,25 @@ func (service *BankAccountServiceImpl) GetAllByUserId(ctx context.Context, user 
 	return bankAccountsByUserIdResponse, nil
 }
 
-func (service *BankAccountServiceImpl) Update(ctx context.Context, user user_model.User, request bank_account_model.BankAccountRequest) error {
+func (service *BankAccountServiceImpl) Update(ctx context.Context, user user_model.User, bankAccountId int, request bank_account_model.BankAccountRequest) error {
+	err := service.Validator.Struct(request)
+	if err != nil {
+		return err
+	}
+
+	bankAccount := bank_account_model.BankAccount{
+		BankAccountId:     bankAccountId,
+		BankName:          request.BankName,
+		BankAccountName:   request.BankAccountName,
+		BankAccountNumber: request.BankAccountNumber,
+		UserId:            user.UserId,
+	}
+
+	service.BankAccountRepository.Update(ctx, bankAccount)
+
 	return nil
 }
 
-func (service *BankAccountServiceImpl) Delete(ctx context.Context, user user_model.User, request int) {
-
+func (service *BankAccountServiceImpl) Delete(ctx context.Context, request int) {
+	service.BankAccountRepository.Delete(ctx, request)
 }

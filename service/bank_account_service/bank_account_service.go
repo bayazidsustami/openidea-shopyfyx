@@ -9,6 +9,6 @@ import (
 type BankAccountService interface {
 	Create(ctx context.Context, user user_model.User, request bank_account_model.BankAccountRequest) error
 	GetAllByUserId(ctx context.Context, user user_model.User) (bank_account_model.BankAccountsByUserIdResponse, error)
-	Update(ctx context.Context, user user_model.User, request bank_account_model.BankAccountRequest) error
-	Delete(ctx context.Context, user user_model.User, request int)
+	Update(ctx context.Context, user user_model.User, bankAccountId int, request bank_account_model.BankAccountRequest) error
+	Delete(ctx context.Context, request int)
 }

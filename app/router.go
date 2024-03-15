@@ -70,6 +70,8 @@ func RegisterRoute(app *fiber.App) {
 	bankAccountRoute := app.Group("/v1/bank/account")
 	bankAccountRoute.Get("/", bankAccountController.GetAllByUserId)
 	bankAccountRoute.Post("/", bankAccountController.Create)
+	bankAccountRoute.Patch("/:bankAccountId", bankAccountController.Update)
+	bankAccountRoute.Delete("/:bankAccountId", bankAccountController.Delete)
 }
 
 // TODO jangan lupa update secrets key
