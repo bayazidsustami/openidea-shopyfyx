@@ -150,8 +150,8 @@ func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx 
 	defer rows.Close()
 
 	var productUser product_model.ProductUsers
-	var bankAccounts []bank_account_model.BankAccount
 	for rows.Next() {
+		var tags string
 		bankAccount := bank_account_model.BankAccount{}
 		err := rows.Scan(
 			&productUser.Name,
@@ -159,7 +159,7 @@ func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx 
 			&productUser.Product.ProductName,
 			&productUser.Product.Price,
 			&productUser.Product.Condition,
-			&productUser.Product.Tags,
+			&tags,
 			&productUser.Product.IsAvailable,
 			&productUser.Product.ImageUrl,
 			&productUser.Product.UserId,
@@ -170,15 +170,12 @@ func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx 
 			&bankAccount.BankAccountNumber,
 			&bankAccount.BankName,
 		)
-
+		productUser.Product.Tags = strings.Split(tags, ",")
 		if err != nil {
 			return product_model.ProductUsers{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
 		}
-
-		bankAccounts = append(bankAccounts, bankAccount)
+		productUser.BankAccounts = append(productUser.BankAccounts, bankAccount)
 	}
-
-	productUser.BankAccounts = bankAccounts
 
 	return productUser, nil
 }
