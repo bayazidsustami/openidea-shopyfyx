@@ -163,3 +163,30 @@ func (controller *ProductController) UpdateProductStock(ctx *fiber.Ctx) error {
 
 	return ctx.SendString("success")
 }
+
+func (controller *ProductController) BuyProduct(ctx *fiber.Ctx) error {
+	paymentRequest := new(product_model.ProductPaymentRequest)
+
+	err := ctx.BodyParser(paymentRequest)
+
+	productIdString := ctx.Params("productId")
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	productId, err := strconv.Atoi(productIdString)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "something error")
+	}
+
+	user, err := controller.AuthService.GetValidUser(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusForbidden, "something error")
+	}
+
+	err = controller.ProductService.BuyProduct(ctx.UserContext(), user, productId, *paymentRequest)
+	if err != nil {
+		return err
+	}
+
+	return ctx.SendString("payment processed successfully")
+}

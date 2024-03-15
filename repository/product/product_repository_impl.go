@@ -2,6 +2,7 @@ package product_repository
 
 import (
 	"context"
+	"log"
 	bank_account_model "openidea-shopyfyx/models/bank_account"
 	product_model "openidea-shopyfyx/models/product"
 	"strconv"
@@ -200,6 +201,53 @@ func (repository *ProductRepositoryImpl) UpdateProductStock(ctx context.Context,
 	if result.RowsAffected() == 0 {
 		return fiber.NewError(fiber.StatusNotFound, "not found id : "+strconv.Itoa(productId))
 	}
+
+	return nil
+}
+
+func (repository *ProductRepositoryImpl) BuyProduct(ctx context.Context, tx pgx.Tx, userId int, productId int, request product_model.ProductPaymentRequest) error {
+
+	GET_PRODUCT_QTY := "SELECT (p.quantity >= $1) as is_sufficient FROM product_stocks as p WHERE product_id = $2"
+
+	var isSufficientStock bool
+	err := tx.QueryRow(ctx, GET_PRODUCT_QTY, request.Quantity, productId).Scan(&isSufficientStock)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	if !isSufficientStock {
+		return fiber.NewError(fiber.StatusBadRequest, "insufficient quantity")
+	}
+
+	CREATE_ORDER := "INSERT INTO orders(product_id, bank_account_id, quantity, payment_proof_image_url) " +
+		"VALUES($1, $2, $3, $4)"
+
+	res, err := tx.Exec(ctx, CREATE_ORDER, productId, request.BankAccountId, request.Quantity, request.PaymentProofImageUrl)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	if res.RowsAffected() == 0 {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid payment")
+	}
+
+	UPDATE_PRODUCT_STOCK := "UPDATE product_stocks AS ps " +
+		"SET updated_at = CURRENT_TIMESTAMP, quantity = quantity - $1 " +
+		"FROM products AS p " +
+		"WHERE ps.product_id = $2 " +
+		"AND p.user_id = $3"
+
+	result, err := tx.Exec(ctx, UPDATE_PRODUCT_STOCK, request.Quantity, productId, userId)
+	log.Println(result.String())
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	if result.RowsAffected() == 0 {
+		return fiber.NewError(fiber.StatusNotFound, "not found id product")
+	}
+
+	tx.Commit(ctx)
 
 	return nil
 }
