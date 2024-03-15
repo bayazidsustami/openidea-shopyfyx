@@ -173,15 +173,20 @@ func (controller *ProductController) BuyProduct(ctx *fiber.Ctx) error {
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
-	_, err = strconv.Atoi(productIdString)
+	productId, err := strconv.Atoi(productIdString)
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "something error")
 	}
 
-	_, err = controller.AuthService.GetValidUser(ctx)
+	user, err := controller.AuthService.GetValidUser(ctx)
 	if err != nil {
 		return fiber.NewError(fiber.StatusForbidden, "something error")
 	}
 
-	return ctx.SendString("oke")
+	err = controller.ProductService.BuyProduct(ctx.UserContext(), user, productId, *paymentRequest)
+	if err != nil {
+		return err
+	}
+
+	return ctx.SendString("payment processed successfully")
 }
