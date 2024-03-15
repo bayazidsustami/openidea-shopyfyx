@@ -19,8 +19,9 @@ type FilterProducts struct {
 	Search         string    `json:"search"`
 }
 
-func (fp *FilterProducts) BuildQuery(userId int) string {
-	query := "SELECT p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, p.user_id, ps.product_stock_id, ps.quantity " +
+func (fp *FilterProducts) BuildQuery() string {
+	query := "SELECT p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, p.user_id, ps.product_stock_id, ps.quantity, " +
+		"(SELECT COUNT(*) FROM orders o WHERE o.product_id = p.product_id) " +
 		"FROM products p " +
 		"JOIN product_stocks ps ON p.product_id = ps.product_id "
 
@@ -82,10 +83,10 @@ func (fp *FilterProducts) BuildQuery(userId int) string {
 
 	// Add limit and offset
 	if fp.Limit > 0 {
-		query += fmt.Sprintf("LIMIT %d", fp.Limit)
+		query += fmt.Sprintf(" LIMIT %d", fp.Limit)
 	}
 	if fp.Offset > 0 {
-		query += fmt.Sprintf("OFFSET %d", fp.Offset)
+		query += fmt.Sprintf(" OFFSET %d", fp.Offset)
 	}
 
 	return query

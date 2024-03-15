@@ -44,3 +44,20 @@ func (repo *UserRepositoryImpl) Login(ctx context.Context, tx pgx.Tx, user user_
 
 	return userResult, nil
 }
+
+func (repo *UserRepositoryImpl) GetSeller(ctx context.Context, tx pgx.Tx, userId int) (user_model.Seller, error) {
+	SQL_GET := "SELECT COALESCE(SUM(o.quantity), 0) " +
+		"FROM users u " +
+		"INNER JOIN products p ON u.user_id = p.user_id " +
+		"INNER JOIN orders o ON p.product_id = o.product_id " +
+		"WHERE p.deleted_at IS NULL " +
+		"AND u.user_id = $1"
+
+	var seller user_model.Seller
+	err := tx.QueryRow(ctx, SQL_GET, userId).Scan(&seller.ProductsSoldTotal)
+	if err != nil {
+		return user_model.Seller{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
+	}
+
+	return seller, nil
+}

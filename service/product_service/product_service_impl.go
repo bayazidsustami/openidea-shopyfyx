@@ -6,6 +6,7 @@ import (
 	product_model "openidea-shopyfyx/models/product"
 	user_model "openidea-shopyfyx/models/user"
 	product_repository "openidea-shopyfyx/repository/product"
+	user_repository "openidea-shopyfyx/repository/user"
 	"openidea-shopyfyx/utils"
 
 	"github.com/go-playground/validator/v10"
@@ -17,17 +18,20 @@ type ProductServiceImpl struct {
 	DBPool            *pgxpool.Pool
 	Validator         *validator.Validate
 	ProductRepository product_repository.ProductRepository
+	UserRepository    user_repository.UserRepository
 }
 
 func New(
 	DBPool *pgxpool.Pool,
 	validator *validator.Validate,
 	productRepository product_repository.ProductRepository,
+	userRepository user_repository.UserRepository,
 ) ProductService {
 	return &ProductServiceImpl{
 		DBPool:            DBPool,
 		Validator:         validator,
 		ProductRepository: productRepository,
+		UserRepository:    userRepository,
 	}
 }
 
@@ -151,7 +155,7 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 		filterProduct.Offset = 1
 	}
 
-	products, meta, err := service.ProductRepository.GetAllProduct(ctx, tx, user.UserId, filterProduct)
+	products, meta, err := service.ProductRepository.GetAllProduct(ctx, tx, filterProduct)
 	if err != nil {
 		return product_model.PagingProductResponse{}, err
 	}
@@ -167,7 +171,7 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 			Condition:      product.Condition,
 			Tags:           product.Tags,
 			IsPurchaseable: product.IsAvailable,
-			PurchaseCount:  0, //TODO : Update Later
+			PurchaseCount:  product.PurchaseCount,
 		}
 		pagingData.Data = append(pagingData.Data, productResponse)
 	}
@@ -194,7 +198,12 @@ func (service *ProductServiceImpl) GetProductById(ctx context.Context, user user
 	}
 	defer utils.CommitOrRollback(ctx, tx)
 
-	productUser, err := service.ProductRepository.GetProductById(ctx, tx, user.UserId, productId)
+	productUser, err := service.ProductRepository.GetProductById(ctx, tx, productId)
+	if err != nil {
+		return product_model.ProductUsersResponse{}, err
+	}
+
+	seller, err := service.UserRepository.GetSeller(ctx, tx, productUser.Product.UserId)
 	if err != nil {
 		return product_model.ProductUsersResponse{}, err
 	}
@@ -209,11 +218,11 @@ func (service *ProductServiceImpl) GetProductById(ctx context.Context, user user
 			Condition:      productUser.Product.Condition,
 			Tags:           productUser.Product.Tags,
 			IsPurchaseable: productUser.Product.IsAvailable,
-			PurchaseCount:  0, //TODO update later
+			PurchaseCount:  productUser.Product.PurchaseCount,
 		},
 		Seller: product_model.Seller{
 			Name:          productUser.Name,
-			PurchaseTotal: 0, //TODO update later
+			PurchaseTotal: seller.ProductsSoldTotal,
 		},
 	}
 

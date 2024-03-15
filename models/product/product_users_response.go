@@ -9,6 +9,6 @@ type ProductUsersResponse struct {
 
 type Seller struct {
 	Name          string                               `json:"name"`
-	PurchaseTotal int                                  `json:"seller"`
+	PurchaseTotal int                                  `json:"productSoldTotal"`
 	BankAccounts  []bank_account_model.BankAccountData `json:"bankAccounts"`
 }
