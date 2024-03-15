@@ -117,7 +117,24 @@ func (controller *ProductController) GetAllProducts(ctx *fiber.Ctx) error {
 }
 
 func (controller *ProductController) GetProductById(ctx *fiber.Ctx) error {
-	return ctx.SendString("success")
+	productIdString := ctx.Params("productId")
+
+	productId, err := strconv.Atoi(productIdString)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "something error")
+	}
+
+	user, err := controller.AuthService.GetValidUser(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusForbidden, "something error")
+	}
+
+	result, err := controller.ProductService.GetProductById(ctx.UserContext(), user, productId)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(result)
 }
 
 func (controller *ProductController) UpdateProductStock(ctx *fiber.Ctx) error {
