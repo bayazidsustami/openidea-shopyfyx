@@ -224,6 +224,7 @@ func (repository *ProductRepositoryImpl) BuyProduct(ctx context.Context, tx pgx.
 	}
 
 	if result.RowsAffected() == 0 {
+		tx.Rollback(ctx)
 		return fiber.NewError(fiber.StatusNotFound, "not found id product")
 	}
 
