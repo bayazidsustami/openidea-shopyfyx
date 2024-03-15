@@ -181,6 +181,17 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 }
 
 func (service *ProductServiceImpl) GetProductById(ctx context.Context, user user_model.User, productId int) error {
+	conn, err := service.DBPool.Acquire(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	defer utils.CommitOrRollback(ctx, tx)
 	return nil
 }
 
