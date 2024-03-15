@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"openidea-shopyfyx/controller/bank_account_controller"
 	"openidea-shopyfyx/controller/image_upload_controller"
 	"openidea-shopyfyx/controller/product_controller"
@@ -15,6 +16,7 @@ import (
 	"openidea-shopyfyx/service/product_service"
 	"openidea-shopyfyx/service/user_service"
 	"openidea-shopyfyx/utils"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -23,7 +25,19 @@ import (
 	"github.com/go-playground/validator/v10"
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
+)
+
+var (
+	requestHistogram = promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "shopifyx_request",
+		Help:    "histogram of shopifyx requests duration",
+		Buckets: prometheus.LinearBuckets(1, 1, 10),
+	}, []string{"path", "method", "status"})
 )
 
 func RegisterRoute(app *fiber.App) {
@@ -49,6 +63,8 @@ func RegisterRoute(app *fiber.App) {
 	bankAccountService := bank_account_service.New(bankAccountRepository, validator)
 	bankAccountController := bank_account_controller.New(bankAccountService, authService)
 
+	app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
+
 	userGroup := app.Group("/v1/user")
 	userGroup.Post("/register", userController.Register)
 	userGroup.Post("/login", userController.Login)
@@ -56,7 +72,7 @@ func RegisterRoute(app *fiber.App) {
 	app.Use(checkTokenHeaderExist)
 	app.Use(getJwtTokenHandler())
 
-	productRoute := app.Group("/v1/product")
+	productRoute := app.Group("/v1/product", promeHttpHandle)
 	productRoute.Get("/", productController.GetAllProducts)
 	productRoute.Get("/:productId", productController.GetProductById)
 	productRoute.Post("/", productController.Create)
@@ -75,7 +91,6 @@ func RegisterRoute(app *fiber.App) {
 	bankAccountRoute.Delete("/:bankAccountId", bankAccountController.Delete)
 }
 
-// TODO jangan lupa update secrets key
 func getJwtTokenHandler() fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: []byte(viper.GetString("JWT_SECRET"))},
@@ -107,4 +122,18 @@ func getAwsSession() *s3.S3 {
 	svc := s3.New(sess)
 
 	return svc
+}
+
+func promeHttpHandle(c *fiber.Ctx) error {
+	startTime := time.Now()
+
+	method := c.Method()
+	path := c.Path()
+
+	duration := time.Since(startTime).Seconds()
+	statusCode := fmt.Sprintf("%d", c.Response().StatusCode())
+
+	requestHistogram.WithLabelValues(path, method, statusCode).Observe(duration)
+
+	return c.Next()
 }

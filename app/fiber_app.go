@@ -8,7 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/spf13/viper"
 )
 
 func InitFiberApp() {
@@ -27,9 +26,6 @@ func InitFiberApp() {
 
 	RegisterRoute(app)
 
-	applicationHost := viper.GetString("APP_HOST")
-	applicationPort := viper.GetString("APP_PORT")
-
-	err := app.Listen(applicationHost + ":" + applicationPort)
+	err := app.Listen("localhost:8000")
 	log.Fatal(err)
 }
