@@ -2,6 +2,7 @@ package product_service
 
 import (
 	"context"
+	bank_account_model "openidea-shopyfyx/models/bank_account"
 	product_model "openidea-shopyfyx/models/product"
 	user_model "openidea-shopyfyx/models/user"
 	product_repository "openidea-shopyfyx/repository/product"
@@ -180,19 +181,53 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 	return pagingData, nil
 }
 
-func (service *ProductServiceImpl) GetProductById(ctx context.Context, user user_model.User, productId int) error {
+func (service *ProductServiceImpl) GetProductById(ctx context.Context, user user_model.User, productId int) (product_model.ProductUsersResponse, error) {
 	conn, err := service.DBPool.Acquire(ctx)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return product_model.ProductUsersResponse{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	defer conn.Release()
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return product_model.ProductUsersResponse{}, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	defer utils.CommitOrRollback(ctx, tx)
-	return nil
+
+	productUser, err := service.ProductRepository.GetProductById(ctx, tx, user.UserId, productId)
+	if err != nil {
+		return product_model.ProductUsersResponse{}, err
+	}
+
+	productResponse := product_model.ProductUsersResponse{
+		Product: product_model.ProductResponse{
+			ProductId:      productUser.Product.ProductId,
+			Name:           productUser.Product.ProductName,
+			Price:          productUser.Product.Price,
+			ImageUrl:       productUser.Product.ImageUrl,
+			Stock:          productUser.Product.ProductStock.Quantity,
+			Condition:      productUser.Product.Condition,
+			Tags:           productUser.Product.Tags,
+			IsPurchaseable: productUser.Product.IsAvailable,
+			PurchaseCount:  0, //TODO update later
+		},
+		Seller: product_model.Seller{
+			Name:          productUser.Name,
+			PurchaseTotal: 0, //TODO update later
+		},
+	}
+
+	for _, bank := range productUser.BankAccounts {
+		bankAccount := bank_account_model.BankAccountData{
+			BankAccountId:     bank.BankAccountId,
+			BankName:          bank.BankName,
+			BankAccountName:   bank.BankAccountName,
+			BankAccountNumber: bank.BankAccountNumber,
+		}
+		productResponse.Seller.BankAccounts = append(productResponse.Seller.BankAccounts, bankAccount)
+	}
+
+	return productResponse, nil
 }
 
 func (service *ProductServiceImpl) UpdateProductStock(ctx context.Context, user user_model.User, productId int, request product_model.UpdateProductStockRequest) error {
