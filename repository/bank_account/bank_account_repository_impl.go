@@ -44,7 +44,7 @@ func (repo *BankAccountRepositoryImpl) GetAllByUserId(ctx context.Context, user_
 	utils.PanicErr(err)
 	defer conn.Release()
 
-	SQL_GETALL := "SELECT bank_account_id, bank_name, bank_account_name, bank_account_number, user_id from bank_accounts WHERE user_id=$1"
+	SQL_GETALL := "SELECT bank_account_id, bank_name, bank_account_name, bank_account_number from bank_accounts WHERE user_id=$1"
 	rows, err := conn.Query(ctx, SQL_GETALL, user_id)
 	if err != nil {
 		return nil, err

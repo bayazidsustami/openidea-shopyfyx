@@ -8,6 +8,6 @@ type BankAccountData struct {
 }
 
 type BankAccountsByUserIdResponse struct {
+	Message string            `json:"message"`
 	Data    []BankAccountData `json:"data"`
-	Message string            `json:"string"`
 }
