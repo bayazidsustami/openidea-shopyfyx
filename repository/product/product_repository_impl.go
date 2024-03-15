@@ -2,7 +2,6 @@ package product_repository
 
 import (
 	"context"
-	"log"
 	bank_account_model "openidea-shopyfyx/models/bank_account"
 	product_model "openidea-shopyfyx/models/product"
 	"strconv"
@@ -95,10 +94,10 @@ func (repository *ProductRepositoryImpl) Delete(ctx context.Context, tx pgx.Tx, 
 	return nil
 }
 
-func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx pgx.Tx, userId int, filterProduct product_model.FilterProducts) ([]product_model.Product, product_model.MetaPage, error) {
-	query := filterProduct.BuildQuery(userId)
+func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx pgx.Tx, filterProduct product_model.FilterProducts) ([]product_model.Product, product_model.MetaPage, error) {
+	query := filterProduct.BuildQuery()
 
-	rows, err := tx.Query(ctx, query, userId)
+	rows, err := tx.Query(ctx, query)
 	if err != nil {
 		return nil, product_model.MetaPage{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
 	}
@@ -119,6 +118,7 @@ func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx p
 			&product.UserId,
 			&product.ProductStock.ProductId,
 			&product.ProductStock.Quantity,
+			&product.PurchaseCount,
 		)
 		product.Tags = strings.Split(tags, ",")
 		if err != nil {
@@ -133,7 +133,7 @@ func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx p
 	}, nil
 }
 
-func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx pgx.Tx, userId int, productId int) (product_model.ProductUsers, error) {
+func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx pgx.Tx, productId int) (product_model.ProductUsers, error) {
 	GET_PRODUCT := "SELECT u.name, p.user_id, p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, " +
 		"p.user_id, ps.product_stock_id, ps.quantity, ba.bank_account_id, ba.bank_account_name, ba.bank_account_number, ba.bank_name, " +
 		"(SELECT COUNT(*) FROM orders o WHERE o.product_id = p.product_id) " +
@@ -240,7 +240,6 @@ func (repository *ProductRepositoryImpl) BuyProduct(ctx context.Context, tx pgx.
 		"AND p.user_id = $3"
 
 	result, err := tx.Exec(ctx, UPDATE_PRODUCT_STOCK, request.Quantity, productId, userId)
-	log.Println(result.String())
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}

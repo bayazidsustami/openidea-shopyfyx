@@ -155,7 +155,7 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 		filterProduct.Offset = 1
 	}
 
-	products, meta, err := service.ProductRepository.GetAllProduct(ctx, tx, user.UserId, filterProduct)
+	products, meta, err := service.ProductRepository.GetAllProduct(ctx, tx, filterProduct)
 	if err != nil {
 		return product_model.PagingProductResponse{}, err
 	}
@@ -171,7 +171,7 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 			Condition:      product.Condition,
 			Tags:           product.Tags,
 			IsPurchaseable: product.IsAvailable,
-			PurchaseCount:  0, //TODO : Update Later
+			PurchaseCount:  product.PurchaseCount,
 		}
 		pagingData.Data = append(pagingData.Data, productResponse)
 	}
@@ -198,7 +198,7 @@ func (service *ProductServiceImpl) GetProductById(ctx context.Context, user user
 	}
 	defer utils.CommitOrRollback(ctx, tx)
 
-	productUser, err := service.ProductRepository.GetProductById(ctx, tx, user.UserId, productId)
+	productUser, err := service.ProductRepository.GetProductById(ctx, tx, productId)
 	if err != nil {
 		return product_model.ProductUsersResponse{}, err
 	}

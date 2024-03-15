@@ -2,7 +2,6 @@ package bank_account_repository
 
 import (
 	"context"
-	"log"
 	bank_account_model "openidea-shopyfyx/models/bank_account"
 	"openidea-shopyfyx/utils"
 
@@ -31,8 +30,6 @@ func (repo *BankAccountRepositoryImpl) Create(ctx context.Context, bank_account 
 	var bankAccountId int
 	SQL_INSERT := "INSERT INTO bank_accounts(bank_name, bank_account_name, bank_account_number, user_id) values ($1, $2, $3, $4) RETURNING bank_account_id"
 	err = tx.QueryRow(ctx, SQL_INSERT, bank_account.BankName, bank_account.BankAccountName, bank_account.BankAccountNumber, bank_account.UserId).Scan(&bankAccountId)
-	log.Print(err)
-
 	utils.PanicErr(err)
 
 	bank_account.BankAccountId = bankAccountId
