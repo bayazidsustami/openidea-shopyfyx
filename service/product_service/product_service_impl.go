@@ -155,7 +155,7 @@ func (service *ProductServiceImpl) GetAllProducts(ctx context.Context, user user
 		filterProduct.Offset = 1
 	}
 
-	products, meta, err := service.ProductRepository.GetAllProduct(ctx, tx, filterProduct)
+	products, meta, err := service.ProductRepository.GetAllProduct(ctx, tx, user.UserId, filterProduct)
 	if err != nil {
 		return product_model.PagingProductResponse{}, err
 	}

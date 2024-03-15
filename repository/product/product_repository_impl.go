@@ -94,10 +94,18 @@ func (repository *ProductRepositoryImpl) Delete(ctx context.Context, tx pgx.Tx, 
 	return nil
 }
 
-func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx pgx.Tx, filterProduct product_model.FilterProducts) ([]product_model.Product, product_model.MetaPage, error) {
+func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx pgx.Tx, userId int, filterProduct product_model.FilterProducts) ([]product_model.Product, product_model.MetaPage, error) {
 	query := filterProduct.BuildQuery()
 
-	rows, err := tx.Query(ctx, query)
+	var rows pgx.Rows
+	var err error
+
+	if filterProduct.UserOnly {
+		rows, err = tx.Query(ctx, query, userId)
+	} else {
+		rows, err = tx.Query(ctx, query)
+	}
+
 	if err != nil {
 		return nil, product_model.MetaPage{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
 	}
