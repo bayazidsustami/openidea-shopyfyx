@@ -72,9 +72,9 @@ func RegisterRoute(app *fiber.App) {
 	app.Use(checkTokenHeaderExist)
 	app.Use(getJwtTokenHandler())
 
-	productRoute := app.Group("/v1/product", promeHttpHandle)
-	productRoute.Get("/", productController.GetAllProducts)
-	productRoute.Get("/:productId", productController.GetProductById)
+	productRoute := app.Group("/v1/product")
+	productRoute.Get("/", productController.GetAllProducts, promeHttpHandle)
+	productRoute.Get("/:productId", productController.GetProductById, promeHttpHandle)
 	productRoute.Post("/", productController.Create)
 	productRoute.Patch("/:productId", productController.Update)
 	productRoute.Delete("/:productId", productController.Delete)
