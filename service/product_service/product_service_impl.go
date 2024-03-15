@@ -209,7 +209,7 @@ func (service *ProductServiceImpl) GetProductById(ctx context.Context, user user
 			Condition:      productUser.Product.Condition,
 			Tags:           productUser.Product.Tags,
 			IsPurchaseable: productUser.Product.IsAvailable,
-			PurchaseCount:  0, //TODO update later
+			PurchaseCount:  productUser.Product.PurchaseCount,
 		},
 		Seller: product_model.Seller{
 			Name:          productUser.Name,

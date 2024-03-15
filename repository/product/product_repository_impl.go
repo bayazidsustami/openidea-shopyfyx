@@ -135,7 +135,8 @@ func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx p
 
 func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx pgx.Tx, userId int, productId int) (product_model.ProductUsers, error) {
 	GET_PRODUCT := "SELECT u.name, p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, " +
-		"p.user_id, ps.product_stock_id, ps.quantity, ba.bank_account_id, ba.bank_account_name, ba.bank_account_number, ba.bank_name " +
+		"p.user_id, ps.product_stock_id, ps.quantity, ba.bank_account_id, ba.bank_account_name, ba.bank_account_number, ba.bank_name, " +
+		"(SELECT COALESCE(SUM(o.order_id), 0) FROM orders o WHERE o.product_id = p.product_id) " +
 		"FROM products p " +
 		"LEFT JOIN product_stocks ps ON p.product_id = ps.product_id " +
 		"INNER JOIN bank_accounts ba ON p.user_id = ba.user_id " +
@@ -174,6 +175,7 @@ func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx 
 			&bankAccount.BankAccountName,
 			&bankAccount.BankAccountNumber,
 			&bankAccount.BankName,
+			&productUser.Product.PurchaseCount,
 		)
 		productUser.Product.Tags = strings.Split(tags, ",")
 		if err != nil {
