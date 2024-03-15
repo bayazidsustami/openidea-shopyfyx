@@ -44,7 +44,7 @@ func (repo *BankAccountRepositoryImpl) GetAllByUserId(ctx context.Context, user_
 	utils.PanicErr(err)
 	defer conn.Release()
 
-	SQL_GETALL := "SELECT bank_account_id, bank_name, bank_account_name, bank_account_number from bank_accounts WHERE user_id=$1"
+	SQL_GETALL := "SELECT bank_account_id, bank_name, bank_account_name, bank_account_number FROM bank_accounts WHERE user_id=$1"
 	rows, err := conn.Query(ctx, SQL_GETALL, user_id)
 	if err != nil {
 		return nil, err
@@ -80,13 +80,12 @@ func (repo *BankAccountRepositoryImpl) Update(ctx context.Context, bank_account 
 	defer utils.CommitOrRollback(ctx, tx)
 
 	var bankAccountResult bank_account_model.BankAccount
-	SQL_UPDATE := "update bank_accounts set bank_name = $2, bank_account_name = $3, bank_account_number = $4 WHERE bank_account_id = $1;"
-	err = tx.QueryRow(ctx, SQL_UPDATE, bank_account.BankAccountId, bank_account.BankName, bank_account.BankAccountName, bank_account.BankAccountNumber).Scan(
-		&bankAccountResult.BankAccountId,
-		&bankAccountResult.BankName,
-		&bankAccountResult.BankAccountName,
-		&bankAccountResult.BankAccountNumber,
-		&bankAccountResult.UserId,
+	SQL_UPDATE := "UPDATE bank_accounts SET bank_name = $1, bank_account_name = $2, bank_account_number = $3, updated_at = CURRENT_TIMESTAMP WHERE bank_account_id = $4;"
+	_, err = tx.Exec(ctx, SQL_UPDATE,
+		bank_account.BankName,
+		bank_account.BankAccountName,
+		bank_account.BankAccountNumber,
+		bank_account.BankAccountId,
 	)
 	utils.PanicErr(err)
 
@@ -102,7 +101,7 @@ func (repo *BankAccountRepositoryImpl) Delete(ctx context.Context, bank_account_
 	utils.PanicErr(err)
 	defer utils.CommitOrRollback(ctx, tx)
 
-	SQL_DELETE := "delete from bank_accounts where bank_account_id = $1"
+	SQL_DELETE := "DELETE FROM bank_accounts WHERE bank_account_id = $1"
 	_, err = tx.Exec(ctx, SQL_DELETE, bank_account_id)
 	utils.PanicErr(err)
 

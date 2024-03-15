@@ -1,10 +1,10 @@
 package bank_account_model
 
 type BankAccountData struct {
-	BankAccountId     int    `json:"bank_account_id"`
-	BankName          string `json:"bank_name"`
-	BankAccountName   string `json:"bank_account_name"`
-	BankAccountNumber string `json:"bank_account_number"`
+	BankAccountId     int    `json:"bankAccountId"`
+	BankName          string `json:"bankName"`
+	BankAccountName   string `json:"bankAccountName"`
+	BankAccountNumber string `json:"bankAccountNumber"`
 }
 
 type BankAccountsByUserIdResponse struct {

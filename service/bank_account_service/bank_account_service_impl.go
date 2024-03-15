@@ -64,13 +64,14 @@ func (service *BankAccountServiceImpl) GetAllByUserId(ctx context.Context, user 
 	return bankAccountsByUserIdResponse, nil
 }
 
-func (service *BankAccountServiceImpl) Update(ctx context.Context, user user_model.User, request bank_account_model.BankAccountRequest) error {
+func (service *BankAccountServiceImpl) Update(ctx context.Context, user user_model.User, bankAccountId int, request bank_account_model.BankAccountRequest) error {
 	err := service.Validator.Struct(request)
 	if err != nil {
 		return err
 	}
 
 	bankAccount := bank_account_model.BankAccount{
+		BankAccountId:     bankAccountId,
 		BankName:          request.BankName,
 		BankAccountName:   request.BankAccountName,
 		BankAccountNumber: request.BankAccountNumber,

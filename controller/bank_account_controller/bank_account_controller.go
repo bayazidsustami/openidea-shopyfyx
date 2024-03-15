@@ -61,9 +61,16 @@ func (controller *BankAccountController) GetAllByUserId(ctx *fiber.Ctx) error {
 }
 
 func (controller *BankAccountController) Update(ctx *fiber.Ctx) error {
+	bankAccountIdString := ctx.Params("bankAccountId")
+
+	bankAccountId, err := strconv.Atoi(bankAccountIdString)
+	if err != nil {
+		return err
+	}
+
 	bankAccountRequest := new(bank_account_model.BankAccountRequest)
 
-	err := ctx.BodyParser(bankAccountRequest)
+	err = ctx.BodyParser(bankAccountRequest)
 	if err != nil {
 		return err
 	}
@@ -73,7 +80,7 @@ func (controller *BankAccountController) Update(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	err = controller.BankAccountService.Update(ctx.UserContext(), user, *bankAccountRequest)
+	err = controller.BankAccountService.Update(ctx.UserContext(), user, bankAccountId, *bankAccountRequest)
 	if err != nil {
 		return err
 	}
