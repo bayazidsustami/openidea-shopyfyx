@@ -63,7 +63,7 @@ func (service *ProductServiceImpl) Create(ctx context.Context, user user_model.U
 		},
 		UserId:      user.UserId,
 		Tags:        request.Tags,
-		IsAvailable: request.IsPurchaseable,
+		IsAvailable: *request.IsPurchaseable,
 	}
 
 	_, err = service.ProductRepository.Create(ctx, tx, product)
