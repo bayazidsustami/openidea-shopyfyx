@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS orders (
-    order_id                VARCHAR(50) PRIMARY KEY,
+    order_id                SERIAL PRIMARY KEY,
     product_id              INT NOT NULL,
     quantity                INT NOT NULL,
     bank_account_id         INT NOT NULL,
@@ -9,5 +9,3 @@ CREATE TABLE IF NOT EXISTS orders (
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
     FOREIGN KEY (bank_account_id) REFERENCES bank_accounts(bank_account_id)
 );
-
-CREATE INDEX idx_order_id ON orders (order_id);
