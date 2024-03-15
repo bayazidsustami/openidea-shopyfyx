@@ -203,3 +203,29 @@ func (repository *ProductRepositoryImpl) UpdateProductStock(ctx context.Context,
 
 	return nil
 }
+
+func (repository *ProductRepositoryImpl) BuyProduct(ctx context.Context, tx pgx.Tx, userId int, productId int, request product_model.ProductPaymentRequest) error {
+	CREATE_ORDER := "INSERT INTO orders(product_id, bank_account_id, quantity, payment_proof_image_url) " +
+		"VALUES($1, $2, $3, $4)"
+
+	_, err := tx.Exec(ctx, CREATE_ORDER, productId, request.BankAccountId, request.Quantity, request.PaymentProofImageUrl)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	UPDATE_PRODUCT_STOCK := "UPDATE product_stocks AS ps " +
+		"SET updated_at = CURRENT_TIMESTAMP, quantity = quantity - $1 " +
+		"FROM products AS p " +
+		"WHERE ps.product_id = $2 " +
+		"AND p.user_id = $3"
+	result, err := tx.Exec(ctx, UPDATE_PRODUCT_STOCK, request.Quantity, productId, userId)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	if result.RowsAffected() == 0 {
+		return fiber.NewError(fiber.StatusNotFound, "not found id product")
+	}
+
+	return nil
+}
