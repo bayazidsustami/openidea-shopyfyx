@@ -2,7 +2,7 @@ package product_repository
 
 import (
 	"context"
-	"log"
+	bank_account_model "openidea-shopyfyx/models/bank_account"
 	product_model "openidea-shopyfyx/models/product"
 	"strconv"
 	"strings"
@@ -132,30 +132,55 @@ func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx p
 	}, nil
 }
 
-func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx pgx.Tx, userId int, productId int) (product_model.Product, error) {
-	GET_PRODUCT := "SELECT p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, p.user_id, ps.product_stock_id, ps.quantity " +
+func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx pgx.Tx, userId int, productId int) (product_model.ProductUsers, error) {
+	GET_PRODUCT := "SELECT u.name, p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, " +
+		"p.user_id, ps.product_stock_id, ps.quantity, ba.bank_account_id, ba.bank_account_name, ba.bank_account_number, ba.bank_name " +
 		"FROM products p " +
-		"JOIN product_stocks ps ON p.product_id = ps.product_id " +
+		"LEFT JOIN product_stocks ps ON p.product_id = ps.product_id " +
+		"INNER JOIN bank_accounts ba ON p.user_id = ba.user_id " +
+		"INNER JOIN users u ON p.user_id = u.user_id " +
 		"WHERE p.deleted_at IS NULL " +
-		"AND p.product_id = $1" +
+		"AND p.product_id = $1 " +
 		"AND p.user_id = $2"
-	product := product_model.Product{}
-	err := tx.QueryRow(ctx, GET_PRODUCT, productId, userId).Scan(
-		&product.ProductId,
-		&product.ProductName,
-		&product.Price,
-		&product.Condition,
-		&product.Tags,
-		&product.IsAvailable,
-		&product.ImageUrl,
-		&product.UserId,
-		&product.ProductStock.ProductId,
-		&product.ProductStock.Quantity,
-	)
+
+	rows, err := tx.Query(ctx, GET_PRODUCT, productId, userId)
 	if err != nil {
-		return product_model.Product{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
+		return product_model.ProductUsers{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
 	}
-	return product, nil
+	defer rows.Close()
+
+	var productUser product_model.ProductUsers
+	var bankAccounts []bank_account_model.BankAccount
+	for rows.Next() {
+		bankAccount := bank_account_model.BankAccount{}
+		err := rows.Scan(
+			&productUser.Name,
+			&productUser.Product.ProductId,
+			&productUser.Product.ProductName,
+			&productUser.Product.Price,
+			&productUser.Product.Condition,
+			&productUser.Product.Tags,
+			&productUser.Product.IsAvailable,
+			&productUser.Product.ImageUrl,
+			&productUser.Product.UserId,
+			&productUser.Product.ProductStock.ProductStockId,
+			&productUser.Product.ProductStock.Quantity,
+			&bankAccount.BankAccountId,
+			&bankAccount.BankAccountName,
+			&bankAccount.BankAccountNumber,
+			&bankAccount.BankName,
+		)
+
+		if err != nil {
+			return product_model.ProductUsers{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
+		}
+
+		bankAccounts = append(bankAccounts, bankAccount)
+	}
+
+	productUser.BankAccounts = bankAccounts
+
+	return productUser, nil
 }
 
 func (repository *ProductRepositoryImpl) UpdateProductStock(ctx context.Context, tx pgx.Tx, userId int, productId int, stockAmount int) error {
@@ -166,7 +191,7 @@ func (repository *ProductRepositoryImpl) UpdateProductStock(ctx context.Context,
 		"AND p.user_id = $3"
 
 	result, err := tx.Exec(ctx, UPDATE_PRODUCT_STOCK, stockAmount, productId, userId)
-	log.Println(err)
+
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
