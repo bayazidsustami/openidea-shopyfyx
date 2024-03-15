@@ -264,13 +264,11 @@ func (service *ProductServiceImpl) BuyProduct(ctx context.Context, user user_mod
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
-	defer conn.Release()
-
 	tx, err := conn.Begin(ctx)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
-	defer utils.CommitOrRollback(ctx, tx)
+	defer tx.Rollback(ctx)
 
 	err = service.ProductRepository.BuyProduct(ctx, tx, user.UserId, productId, request)
 	if err != nil {
