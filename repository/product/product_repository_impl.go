@@ -205,10 +205,22 @@ func (repository *ProductRepositoryImpl) UpdateProductStock(ctx context.Context,
 }
 
 func (repository *ProductRepositoryImpl) BuyProduct(ctx context.Context, tx pgx.Tx, userId int, productId int, request product_model.ProductPaymentRequest) error {
+	GET_PRODUCT_QTY := "SELECT (p.quantity >= $1) as is_sufficient  FROM product_stocks as p WHERE product_id = $2"
+	var isSufficientStock bool
+	err := tx.QueryRow(ctx, GET_PRODUCT_QTY, request.Quantity, productId).Scan(&isSufficientStock)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	if !isSufficientStock {
+		tx.Rollback(ctx)
+		return fiber.NewError(fiber.StatusBadRequest, "issuficient quantity")
+	}
+
 	CREATE_ORDER := "INSERT INTO orders(product_id, bank_account_id, quantity, payment_proof_image_url) " +
 		"VALUES($1, $2, $3, $4)"
 
-	_, err := tx.Exec(ctx, CREATE_ORDER, productId, request.BankAccountId, request.Quantity, request.PaymentProofImageUrl)
+	_, err = tx.Exec(ctx, CREATE_ORDER, productId, request.BankAccountId, request.Quantity, request.PaymentProofImageUrl)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
