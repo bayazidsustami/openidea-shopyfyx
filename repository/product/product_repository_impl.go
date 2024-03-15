@@ -134,7 +134,7 @@ func (repository *ProductRepositoryImpl) GetAllProduct(ctx context.Context, tx p
 }
 
 func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx pgx.Tx, userId int, productId int) (product_model.ProductUsers, error) {
-	GET_PRODUCT := "SELECT u.name, p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, " +
+	GET_PRODUCT := "SELECT u.name, p.user_id, p.product_id, p.product_name, p.price, p.condition, p.tags, p.is_available, p.image_url, " +
 		"p.user_id, ps.product_stock_id, ps.quantity, ba.bank_account_id, ba.bank_account_name, ba.bank_account_number, ba.bank_name, " +
 		"(SELECT COUNT(*) FROM orders o WHERE o.product_id = p.product_id) " +
 		"FROM products p " +
@@ -142,10 +142,9 @@ func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx 
 		"INNER JOIN bank_accounts ba ON p.user_id = ba.user_id " +
 		"INNER JOIN users u ON p.user_id = u.user_id " +
 		"WHERE p.deleted_at IS NULL " +
-		"AND p.product_id = $1 " +
-		"AND p.user_id = $2"
+		"AND p.product_id = $1"
 
-	rows, err := tx.Query(ctx, GET_PRODUCT, productId, userId)
+	rows, err := tx.Query(ctx, GET_PRODUCT, productId)
 	if err != nil {
 		return product_model.ProductUsers{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
 	}
@@ -161,6 +160,7 @@ func (repository *ProductRepositoryImpl) GetProductById(ctx context.Context, tx 
 		bankAccount := bank_account_model.BankAccount{}
 		err := rows.Scan(
 			&productUser.Name,
+			&productUser.Product.UserId,
 			&productUser.Product.ProductId,
 			&productUser.Product.ProductName,
 			&productUser.Product.Price,

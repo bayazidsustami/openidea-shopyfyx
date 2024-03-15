@@ -6,6 +6,7 @@ import (
 	product_model "openidea-shopyfyx/models/product"
 	user_model "openidea-shopyfyx/models/user"
 	product_repository "openidea-shopyfyx/repository/product"
+	user_repository "openidea-shopyfyx/repository/user"
 	"openidea-shopyfyx/utils"
 
 	"github.com/go-playground/validator/v10"
@@ -17,17 +18,20 @@ type ProductServiceImpl struct {
 	DBPool            *pgxpool.Pool
 	Validator         *validator.Validate
 	ProductRepository product_repository.ProductRepository
+	UserRepository    user_repository.UserRepository
 }
 
 func New(
 	DBPool *pgxpool.Pool,
 	validator *validator.Validate,
 	productRepository product_repository.ProductRepository,
+	userRepository user_repository.UserRepository,
 ) ProductService {
 	return &ProductServiceImpl{
 		DBPool:            DBPool,
 		Validator:         validator,
 		ProductRepository: productRepository,
+		UserRepository:    userRepository,
 	}
 }
 
@@ -199,6 +203,11 @@ func (service *ProductServiceImpl) GetProductById(ctx context.Context, user user
 		return product_model.ProductUsersResponse{}, err
 	}
 
+	seller, err := service.UserRepository.GetSeller(ctx, tx, productUser.Product.UserId)
+	if err != nil {
+		return product_model.ProductUsersResponse{}, err
+	}
+
 	productResponse := product_model.ProductUsersResponse{
 		Product: product_model.ProductResponse{
 			ProductId:      productUser.Product.ProductId,
@@ -213,7 +222,7 @@ func (service *ProductServiceImpl) GetProductById(ctx context.Context, user user
 		},
 		Seller: product_model.Seller{
 			Name:          productUser.Name,
-			PurchaseTotal: 0, //TODO update later
+			PurchaseTotal: seller.ProductsSoldTotal,
 		},
 	}
 

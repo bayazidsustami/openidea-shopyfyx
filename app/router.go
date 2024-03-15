@@ -39,7 +39,7 @@ func RegisterRoute(app *fiber.App) {
 	userController := user_controller.New(userService)
 
 	productRepository := product_repository.New()
-	productService := product_service.New(dbPool, validator, productRepository)
+	productService := product_service.New(dbPool, validator, productRepository, userRepository)
 	productController := product_controller.New(productService, authService)
 
 	imageService := image_service.New(getAwsSession())
