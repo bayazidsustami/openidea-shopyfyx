@@ -31,7 +31,7 @@ func (service *AuthServiceImpl) ValidateToken(context context.Context, user user
 	// TODO : jangan lupa ganti JWTsecret key
 	signedToken, err := token.SignedString([]byte(viper.GetString("JWT_SECRET")))
 	if err != nil {
-		return user_model.User{}, err
+		return user_model.User{}, fiber.NewError(fiber.StatusForbidden, "forbidden")
 	}
 
 	user.AccessToken = signedToken
