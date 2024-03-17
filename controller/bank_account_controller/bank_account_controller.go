@@ -72,7 +72,7 @@ func (controller *BankAccountController) Update(ctx *fiber.Ctx) error {
 
 	err = ctx.BodyParser(bankAccountRequest)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid request")
 	}
 
 	user, err := controller.AuthService.GetValidUser(ctx)
