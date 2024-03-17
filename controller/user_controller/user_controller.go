@@ -30,6 +30,7 @@ func (controller *UserController) Register(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	ctx.Status(201)
 	return ctx.JSON(result)
 }
 
