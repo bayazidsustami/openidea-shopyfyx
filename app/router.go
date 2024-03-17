@@ -29,6 +29,8 @@ import (
 func RegisterRoute(app *fiber.App) {
 
 	validator := validator.New()
+	registerValidation(validator)
+
 	dbPool, err := db.InitDBPool()
 	utils.PanicErr(err)
 
@@ -107,4 +109,8 @@ func getAwsSession() *s3.S3 {
 	svc := s3.New(sess)
 
 	return svc
+}
+
+func registerValidation(validation *validator.Validate) {
+	validation.RegisterValidation("imageurl", utils.MustValidImageUrl)
 }
