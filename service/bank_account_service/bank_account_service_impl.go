@@ -28,7 +28,7 @@ func New(
 func (service *BankAccountServiceImpl) Create(ctx context.Context, user user_model.User, request bank_account_model.BankAccountRequest) error {
 	err := service.Validator.Struct(request)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid input")
 	}
 
 	bankAccount := bank_account_model.BankAccount{

@@ -39,7 +39,11 @@ func (repo *UserRepositoryImpl) Login(ctx context.Context, tx pgx.Tx, user user_
 		&userResult.Password,
 	)
 	if err != nil {
-		return user_model.User{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
+		if err == pgx.ErrNoRows {
+			return user_model.User{}, fiber.NewError(fiber.StatusNotFound, "not found")
+		} else {
+			return user_model.User{}, fiber.NewError(fiber.StatusInternalServerError, "something error")
+		}
 	}
 
 	return userResult, nil

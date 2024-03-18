@@ -38,7 +38,7 @@ func (controller *UserController) Login(ctx *fiber.Ctx) error {
 	userRequest := new(user_model.UserLoginRequest)
 	err := ctx.BodyParser(userRequest)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid request")
 	}
 
 	result, err := controller.Service.Login(ctx.UserContext(), *userRequest)

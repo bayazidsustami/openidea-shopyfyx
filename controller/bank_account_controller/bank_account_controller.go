@@ -65,7 +65,7 @@ func (controller *BankAccountController) Update(ctx *fiber.Ctx) error {
 
 	bankAccountId, err := strconv.Atoi(bankAccountIdString)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "invalid request")
+		return fiber.NewError(fiber.StatusNotFound, "not found")
 	}
 
 	bankAccountRequest := new(bank_account_model.BankAccountRequest)
