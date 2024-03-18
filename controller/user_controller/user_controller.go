@@ -22,7 +22,7 @@ func (controller *UserController) Register(ctx *fiber.Ctx) error {
 
 	err := ctx.BodyParser(userRequest)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid request")
 	}
 
 	result, err := controller.Service.Register(ctx.UserContext(), *userRequest)
