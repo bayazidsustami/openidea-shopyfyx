@@ -115,7 +115,7 @@ func (service *UserServiceImpl) Login(context context.Context, request user_mode
 
 	err = bcrypt.CompareHashAndPassword([]byte(userResult.Password), []byte(request.Password))
 	if err != nil {
-		return nil, fiber.NewError(fiber.StatusUnauthorized, err.Error())
+		return nil, fiber.NewError(fiber.StatusBadRequest, "missmatch password")
 	}
 
 	validUser, err := service.AuthService.ValidateToken(context, userResult)

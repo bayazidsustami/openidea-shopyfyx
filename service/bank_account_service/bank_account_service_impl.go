@@ -7,6 +7,7 @@ import (
 	bank_account_repository "openidea-shopyfyx/repository/bank_account"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
 )
 
 type BankAccountServiceImpl struct {
@@ -27,7 +28,7 @@ func New(
 func (service *BankAccountServiceImpl) Create(ctx context.Context, user user_model.User, request bank_account_model.BankAccountRequest) error {
 	err := service.Validator.Struct(request)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid input")
 	}
 
 	bankAccount := bank_account_model.BankAccount{
@@ -67,7 +68,7 @@ func (service *BankAccountServiceImpl) GetAllByUserId(ctx context.Context, user 
 func (service *BankAccountServiceImpl) Update(ctx context.Context, user user_model.User, bankAccountId int, request bank_account_model.BankAccountRequest) error {
 	err := service.Validator.Struct(request)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid input")
 	}
 
 	bankAccount := bank_account_model.BankAccount{

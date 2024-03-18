@@ -29,7 +29,7 @@ func (controller *ProductController) Create(ctx *fiber.Ctx) error {
 
 	err := ctx.BodyParser(productRequest)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid request")
 	}
 
 	user, err := controller.AuthService.GetValidUser(ctx)

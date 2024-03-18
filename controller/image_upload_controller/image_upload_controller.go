@@ -31,7 +31,7 @@ func New(
 func (controller *ImageUploadController) UploadImage(ctx *fiber.Ctx) error {
 	form, err := ctx.MultipartForm()
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "no image found")
 	}
 
 	files := form.File["file"]

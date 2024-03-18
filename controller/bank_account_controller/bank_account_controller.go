@@ -30,12 +30,12 @@ func (controller *BankAccountController) Create(ctx *fiber.Ctx) error {
 
 	err := ctx.BodyParser(bankAccountRequest)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid request")
 	}
 
 	user, err := controller.AuthService.GetValidUser(ctx)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusForbidden, "forbidden")
 	}
 
 	err = controller.BankAccountService.Create(ctx.UserContext(), user, *bankAccountRequest)
@@ -49,7 +49,7 @@ func (controller *BankAccountController) Create(ctx *fiber.Ctx) error {
 func (controller *BankAccountController) GetAllByUserId(ctx *fiber.Ctx) error {
 	user, err := controller.AuthService.GetValidUser(ctx)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusForbidden, "forbidden")
 	}
 
 	response, err := controller.BankAccountService.GetAllByUserId(ctx.UserContext(), user)
@@ -65,19 +65,19 @@ func (controller *BankAccountController) Update(ctx *fiber.Ctx) error {
 
 	bankAccountId, err := strconv.Atoi(bankAccountIdString)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusNotFound, "not found")
 	}
 
 	bankAccountRequest := new(bank_account_model.BankAccountRequest)
 
 	err = ctx.BodyParser(bankAccountRequest)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid request")
 	}
 
 	user, err := controller.AuthService.GetValidUser(ctx)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusForbidden, "forbidden")
 	}
 
 	err = controller.BankAccountService.Update(ctx.UserContext(), user, bankAccountId, *bankAccountRequest)
@@ -93,12 +93,12 @@ func (controller *BankAccountController) Delete(ctx *fiber.Ctx) error {
 
 	bankAccountId, err := strconv.Atoi(bankAccountIdString)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid request")
 	}
 
 	_, err = controller.AuthService.GetValidUser(ctx)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusForbidden, "forbidden")
 	}
 
 	controller.BankAccountService.Delete(ctx.UserContext(), bankAccountId)

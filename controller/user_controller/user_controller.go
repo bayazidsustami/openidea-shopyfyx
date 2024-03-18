@@ -22,7 +22,7 @@ func (controller *UserController) Register(ctx *fiber.Ctx) error {
 
 	err := ctx.BodyParser(userRequest)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid request")
 	}
 
 	result, err := controller.Service.Register(ctx.UserContext(), *userRequest)
@@ -30,6 +30,7 @@ func (controller *UserController) Register(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	ctx.Status(201)
 	return ctx.JSON(result)
 }
 
@@ -37,7 +38,7 @@ func (controller *UserController) Login(ctx *fiber.Ctx) error {
 	userRequest := new(user_model.UserLoginRequest)
 	err := ctx.BodyParser(userRequest)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid request")
 	}
 
 	result, err := controller.Service.Login(ctx.UserContext(), *userRequest)
